@@ -1,16 +1,35 @@
-# This is a sample Python script.
+#Vorbemerkung: postgres-DockerContainer must be up
 
-# Press Umschalt+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+# in terminal: pip install psycopg2
+import psycopg2
+
+try:
+    connection = psycopg2.connect(
+        host="localhost",
+        port="6432", # hier 6432 weil ich die Portbindung geändert hatte
+        database="dbprak_postgres",
+        user="dbprak_postgres",
+        password="dbprak_postgres"
+    )
+
+    # Perform database operations here
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM friendship") # friendship war die Beispieltabelle, die ich angelegt hatte
+    rows = cursor.fetchall()
+
+    for row in rows:
+        print(row)
+
+    cursor.close()
+
+except psycopg2.Error as error:
+    print("Error connecting to PostgreSQL:", error)
+
+connection.close()
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Strg+F8 to toggle the breakpoint.
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+#if __name__ == '__main__':
+#    print(Hi)
