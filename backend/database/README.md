@@ -17,7 +17,7 @@
 1. Install `docker` and `docker-compose`
 2. Start Postgres server by opening a terminal in this folder and running `docker-compose up -d`
 	* If a 'permission denied' error occurs when using `docker-compose`, use `sudo` or add user to docker group (`sudo usermod -aG docker $USER`) and log out and in, before trying again
-3. After a short delay, the pgAdmin web interface is available in your browser at [http://localhost:5050](http://localhost:5050) (User: pgadmin@pgadmin.com / Password: pgadmin)
+3. After a short delay, the pgAdmin web interface is available in your browser at [http://localhost:6050](http://localhost:6050) (User: pgadmin@pgadmin.com / Password: pgadmin)
 4. Create a new server connection in pgAdmin. Hostname our PostgreSQL instance is 'postgres.container'. User and password are both set to 'postgres'. It is advisable to select 'Save password', because the whole setup process has to be done only once. At the next start, pgAdmin will already be connected to the server.
 5. You are now able to use all tools of pgAdmin and PostgreSQL. An empty database 'postgres' is already created and can now be fed e.g. via the query tool. The file 'friend_tables.sql' provides an example for creating your first tables. Your progress is saved locally and will be available the next time you start the server.
 6. Stop Postgres server when finished by running `docker-compose down`
