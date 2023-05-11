@@ -1,7 +1,7 @@
 #Vorbemerkung: postgres-DockerContainer must be up
 
 # in terminal: pip install psycopg2
-import psycopg2
+import psycopg2 #Psycopg is the most popular PostgreSQL database adapter for Python
 
 try:
     connection = psycopg2.connect(
