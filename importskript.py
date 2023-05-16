@@ -5,6 +5,7 @@ import psycopg2 #Psycopg is the most popular PostgreSQL database adapter for Pyt
 import xml.etree.ElementTree as ET
 #import os
 
+#connection zur Datenbank (Postgres-Docker-Container) aufbauen
 try:
     connection = psycopg2.connect(
         host="localhost",
@@ -63,7 +64,7 @@ def grabeTiefer(oberkategorie, ober_id):
 
 
 
-#Tabellen leeren vor erneutem Einfügen
+#Tabellen leeren vor erneutem Einfuegen
 with connection.cursor() as cleaner:
     cleaner.execute("DELETE FROM Produkt_Kategorie; DELETE FROM Kategorie; DELETE FROM Produkt;")
 connection.commit()
@@ -83,7 +84,7 @@ with connection.cursor() as cursor:
         grabeTiefer(hauptkategorie, actual_id)
 
 
-# Commit the changes and close the connection
+# Aenderungen commiten und Connection schliessen
 connection.commit()
 connection.close()
 
@@ -116,7 +117,40 @@ CREATE TABLE Produkt (
 
 """
 
+"""
+Z.B. für die Hauptkategorie "Formate" (katid=13) kriegst du so Kategori selbst + alle Unterkategorien aus der KategorieTabelle:
 
+WITH RECURSIVE subcategories AS (
+  SELECT KatID, Kategoriename, Oberkategorie
+  FROM Kategorie
+  WHERE KatID = '13'  -- Specify the ID of the category you want to retrieve subcategories for
+
+  UNION ALL
+
+  SELECT k.KatID, k.Kategoriename, k.Oberkategorie
+  FROM Kategorie k
+  INNER JOIN subcategories s ON s.KatID = k.Oberkategorie
+)
+SELECT KatID, Kategoriename, Oberkategorie
+FROM subcategories;
+
+
+Geht auch beginnend für Zwischenebenen, z.B: für "Box-Sets" (katid=24):
+WITH RECURSIVE subcategories AS (
+  SELECT KatID, Kategoriename, Oberkategorie
+  FROM Kategorie
+  WHERE KatID = '24'  -- Specify the ID of the category you want to retrieve subcategories for
+
+  UNION ALL
+
+  SELECT k.KatID, k.Kategoriename, k.Oberkategorie
+  FROM Kategorie k
+  INNER JOIN subcategories s ON s.KatID = k.Oberkategorie
+)
+SELECT KatID, Kategoriename, Oberkategorie
+FROM subcategories;
+Bei einer spezifischen Abfrage für igrendwas müssen wir dann bei einer anderen Abfrage meiner Meinung nach nur im where teil IN.(...) nutzen statt spezifische id
+"""
 
 
 #current_directory = os.getcwd()
