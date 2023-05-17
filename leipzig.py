@@ -61,8 +61,9 @@ with connection.cursor() as cursor_lpz:
                         titel = punkt.text
                     elif punkt.tag == 'labels':
                         labels = [label.get('name') for label in punkt.findall('label')] # ".get('')" weil es Attribut "name" in Untertag <label> ist
-                    elif punkt.tag == 'releasedate':
-                        erscheinungsdatum = punkt.text
+                    elif punkt.tag == 'musicspec':
+                        erscheinungsdatum = [releasedate.text for releasedate in punkt.findall('releasedate')]
+                        print(erscheinungsdatum)
                     elif punkt.tag == 'tracks':
                         titles = [track.text for track in punkt.findall('title')] # ".text" weil es gibt immer Untertag <title> mit Text -> Titel
                     elif punkt.tag == 'artists':
@@ -73,6 +74,13 @@ with connection.cursor() as cursor_lpz:
                     (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
                 )
                 connection.commit()
+
+               # cursor_lpz.execute(
+               #     "INSERT INTO CD (PID, Label, Erscheinungsdatum) SELECT %s, %s, %s "
+               #     + "WHERE NOT EXISTS (SELECT 1 FROM CD where PID = %s);",
+               #     (pid, titel, None, erscheinungsdatum, pid)  # Rating errechnet sich ja aus Rezensionen
+               # )
+               # connection.commit()
 
 
 
