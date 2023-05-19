@@ -42,6 +42,28 @@ CREATE TABLE CD (
   CONSTRAINT CD_Kuenstler_PID_fk FOREIGN KEY (PID) REFERENCES Produkt(PID)
 );
 
+CREATE TABLE Kuenstler (
+  KuenstlerID INT PRIMARY KEY,
+  Kuenstlername VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE CD_Kuenstler (
+  PID VARCHAR(255),
+  KuenstlerID INT,
+  PRIMARY KEY (PID, KuenstlerID),
+  FOREIGN KEY (PID) REFERENCES CD(PID),
+  FOREIGN KEY (KuenstlerID) REFERENCES Kuenstler(KuenstlerID)
+);
+
+
+CREATE TABLE Titel (
+  PID VARCHAR(255),
+  Titelname VARCHAR(255),
+  PRIMARY KEY(PID, Titelname),
+  FOREIGN KEY (PID) REFERENCES CD(PID)
+);
+
+
 CREATE TABLE Autor (
   AutorID INT PRIMARY KEY,
   Vorname VARCHAR(255),
@@ -72,26 +94,6 @@ CREATE TABLE DVD_Beteiligungen (
   FOREIGN KEY (BeteiligtenID) REFERENCES DVD_Beteiligte(BeteiligtenID)
 );
 
-CREATE TABLE Kuenstler (
-  KuenstlerID INT PRIMARY KEY,
-  Kuenstlername VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE CD_Kuenstler (
-  PID VARCHAR(255),
-  KuenstlerID INT,
-  PRIMARY KEY (PID, KuenstlerID),
-  FOREIGN KEY (PID) REFERENCES CD(PID),
-  FOREIGN KEY (KuenstlerID) REFERENCES Kuenstler(KuenstlerID)
-);
-
-
-CREATE TABLE Titel (
-  PID VARCHAR(255),
-  Titelname VARCHAR(255),
-  PRIMARY KEY(PID, Titelname),
-  FOREIGN KEY (PID) REFERENCES CD(PID)
-);
 
 CREATE TABLE Kategorie (
   KatID INT PRIMARY KEY,
@@ -123,20 +125,21 @@ CREATE TABLE Anschrift (
 );
 
 CREATE TABLE Zustand (
-  Zustandsnummer INT PRIMARY KEY,
+  Zustandsnummer SERIAL PRIMARY KEY,
   Beschreibung VARCHAR(255)
 );
 
 CREATE TABLE Angebot (
+    AngebotsID INT PRIMARY KEY,
 	PID VARCHAR(255),
 	FID INT,
 	Preis DECIMAL(10,2),
 	Zustandsnummer INT,
 	Menge INT,
-	PRIMARY KEY (PID, FID, Preis, Zustandsnummer),
 	FOREIGN KEY (PID) REFERENCES Produkt(PID),
 	FOREIGN KEY (FID) REFERENCES Filiale(FID),
-	FOREIGN KEY (Zustandsnummer) REFERENCES Zustand(Zustandsnummer)
+	FOREIGN KEY (Zustandsnummer) REFERENCES Zustand(Zustandsnummer),
+	CONSTRAINT unique_offer_constraint UNIQUE (PID, FID, Preis, Zustandsnummer)
 );
 
 CREATE TABLE Kunde (
