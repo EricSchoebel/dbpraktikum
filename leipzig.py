@@ -63,7 +63,7 @@ with connection.cursor() as cursor_lpz:
     )
     connection.commit()
 
-    #Anschrift einfuegen
+    #Anschrift einfuegen, spaeter auch analog fuer Dresden
     cursor_lpz.execute(
         "INSERT INTO Anschrift (FID, Strasse, Hausnummer, PLZ) SELECT %s, %s, %s, %s "
         + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
@@ -106,12 +106,11 @@ with connection.cursor() as cursor_lpz:
 
     for item in root_two:
         try:
+
+            #die folgenden Infos sind bei Leipzig bei jeder Produktart gleich UND sind in Item-Tag zu finden
             #print(item.attrib)
             produktart = item.get('pgroup')
             pid = item.get('asin')
-            #hier vielleicht noch ein if check -> siehe meine Fehlermeldung, das waere was für die Fehlerdatei
-            #if pid is not None:   #um zu sehen wo man ist
-            #    print(pid)
 
             verkaufsrang = item.get('salesrank')
             if len(verkaufsrang) == 0: #bei leerem String, muss ich fuer SQL eine NULLwert geben
@@ -144,6 +143,7 @@ with connection.cursor() as cursor_lpz:
                         #Test, dass wirklich nur EUR-Preise
                         if (currency != 'EUR') and (len(currency)>0):
                             print("currency ist nicht null und nicht Euro: "+currency)
+                            #tritt zweimal auf, aber das es "EUREUR" ist, kann man davon ausgehen, dass Euro gemeint war
 
 
                     elif punkt.tag == 'labels':
@@ -156,7 +156,7 @@ with connection.cursor() as cursor_lpz:
                         else:
                             erscheinungsdatum = erscheinungsdatum_roh[0]
                         #erscheinungsdatum = str(erscheinungsdatum_roh[0]) #ohenhin bloss einelementige Liste
-                        print(erscheinungsdatum)
+                        #print(erscheinungsdatum)
                     elif punkt.tag == 'tracks':
                         titles = [track.text for track in punkt.findall('title')] # ".text" weil es gibt immer Untertag <title> mit Text -> Titel
                     elif punkt.tag == 'artists':
@@ -165,10 +165,13 @@ with connection.cursor() as cursor_lpz:
                     elif punkt.tag == 'creators':
                         creators = [creator.get('name') for creator in punkt.findall('creator')]
                         kuenstler_total.extend(creators)
-                    #FALSCH if len(kuenstler_total) == 0:
-                    #    kuenstler_total = None
 
+                    elif punkt.tag == 'similars':
+                        # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
+                        aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
+                                            for sim_product in punkt.findall('sim_product')]
 
+                #Einschreiben in Tabellen
                 cursor_lpz.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
@@ -241,6 +244,9 @@ with connection.cursor() as cursor_lpz:
                     )
                     connection.commit()
 
+
+
+
                 #Suche Zustandsnummer fuer gegebenen Zustand
                 #eig. fuer alle Produktarten gleich
                 cursor_lpz.execute(
@@ -301,7 +307,37 @@ with connection.cursor() as cursor_lpz:
                     )
                     connection.commit()
 
+                #AehnlichkeitTabelle befuellen (fuaer alle Arten gleich)
+                # (lexikographisch) kleinere PID ist immer PID1
+                # aehnliche_produkte_tupelliste  nutzen
+                # (aehnlich_pid, aehnlich_titel)     wenn das Prdukt noch nicht ProduktTabelle da noch eitnragne
+                #aehnliche_produkte_tupelliste
+                for tupel in aehnliche_produkte_tupelliste:
+                    cursor_lpz.execute(
+                        "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) "
+                        +"SELECT %s, %s, %s, %s, %s "
+                        +"WHERE NOT EXISTS (SELECT 1 FROM Produkt WHERE PID = %s);",
+                        (tupel[0], tupel[1], None, None, None, tupel[0])
+                    )
+                    connection.commit()
 
+                    kleiner = 0
+                    groesser = 0
+                    if str(pid) < str(tupel[0]):
+                        kleiner = pid
+                        groesser = tupel[0]
+                    elif str(tupel[0]) < str(pid):
+                        kleiner = tupel[0]
+                        groesser = pid
+
+                    if kleiner != groesser:
+                        cursor_lpz.execute(
+                            "INSERT INTO Aehnlichkeit (PID1, PID2) "
+                            + "SELECT %s, %s "
+                            + "WHERE NOT EXISTS (SELECT 1 FROM Aehnlichkeit WHERE PID1 = %s and PID2 = %s);",
+                            (kleiner, groesser, kleiner, groesser)
+                        )
+                        connection.commit()
 
 
 
@@ -314,11 +350,142 @@ with connection.cursor() as cursor_lpz:
                  #   print(item.get('pgroup'))
 
 
+            elif produktart == 'Book':
+                for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
+                    if punkt.tag == 'title':
+                        titel = punkt.text
+                    elif punkt.tag == 'price': #das ist zwar auch bei jeder Produktart das gleiche Vorgehen
+                        multiplizierer = punkt.get('mult')
+                        zustand = punkt.get('state')
+                        currency = punkt.get('currency')
+                        centpreis = punkt.text
+                        if centpreis is not None and multiplizierer is not None:
+                            europreis = decimal.Decimal(multiplizierer) * decimal.Decimal(centpreis)
+                        else:
+                            europreis = None
+
+                    elif punkt.tag == 'bookspec':
+                        erscheinungsdatum_buch_roh = [publicationdate.get('date') for publicationdate in punkt.findall('publication')]
+                        if erscheinungsdatum_buch_roh is None:
+                            erscheinungsdatum_buch = None
+                        else:
+                            erscheinungsdatum_buch = erscheinungsdatum_buch_roh[0]
+
+                        seitenzahl_roh = [page.text for page in punkt.findall('pages')]
+                        if seitenzahl_roh is None:
+                            seitenzahl = None
+                        else:
+                            seitenzahl = seitenzahl_roh[0]
+
+                        isbn_roh = [nummer.get('val') for nummer in punkt.findall('isbn')]
+                        if isbn_roh is None:
+                            isbn = None
+                        else:
+                            isbn = isbn_roh[0]
+
+                    elif punkt.tag == 'publishers':
+                        verlage = [publisher.get('name') for publisher in
+                                  punkt.findall('publisher')]  # ".get('')" weil es Attribut "name" in Untertag <publisher> ist
+                        longest_verlag = max(verlage, key=len,
+                                            default=None)  # nur laengster Verlag (mit meisten Infos) erhalten und None-Handling
+
+                    elif punkt.tag == 'authors':
+                        authors = [author.get('name') for author in punkt.findall('author')]
+
+                    elif punkt.tag == 'similars':
+                        # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
+                        aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
+                                            for sim_product in punkt.findall('sim_product')]
+
+                # Einschreiben in Tabellen
+                ####A
+                cursor_lpz.execute(
+                    "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                )
+                connection.commit()
+
+                cursor_lpz.execute(
+                    "INSERT INTO Buch (PID, Seitenzahl, Erscheinungsdatum, isbn, verlag) SELECT %s, %s, "
+                    + "CASE WHEN %s IS NULL THEN NULL ELSE to_date(%s, 'YYYY-MM-DD') END "
+                    + ", %s, %s "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Buch where PID = %s);",
+                    (pid, seitenzahl, erscheinungsdatum_buch, erscheinungsdatum_buch, isbn, longest_verlag, pid)
+                )
+                connection.commit()
+                print(erscheinungsdatum_buch)
+
+
+
+                ######B
+    
+                # Retrieve the maximum autor_id from the Autor table
+                cursor_lpz.execute("SELECT MAX(AutorID) FROM Autor;")
+                max_autor_id = cursor_lpz.fetchone()[0]
+
+                # wenn es den Autornamen schon gibt, dann keinen neuen Eintrag in Autortabelle machen,
+                # sondern mit bestehender AutorID die Verbindung in Buch_Autor machen
+                # (hochzaehllogik musste man aufpassen)
+                for autorname in authors:
+                    names = autorname.split(
+                        "/")  # falls in einem Autornamen eig. mehrere mit "/" separiert reingechrieben
+    
+                    for name in names:
+                        # print(name)
+                        # Hole maximum autor_id von AutorTabelle
+                        cursor_lpz.execute("SELECT MAX(AutorID) FROM Autor;")
+                        max_autor_id = cursor_lpz.fetchone()[0]
+    
+                        # setze initiale autor_id auf maximumn autor_id
+                        if max_autor_id is None:
+                            autor_id = 0
+                        else:
+                            autor_id = max_autor_id
+    
+                        cursor_lpz.execute(
+                            "SELECT AutorID FROM Autor WHERE Autorname = %s;",
+                            (name,)
+                        )
+                        existing_autor = cursor_lpz.fetchone()
+                        if existing_autor is not None:  # Fall: Autorname gibt's schon in Autor table
+                            autor_id = existing_autor[0]
+                        else:  # Fall: Autorennamen gibt es noch nicht in Autor table, dann musst einen neuen Eintrag in Autor Tabelle machen
+                            autor_id = autor_id + 1
+                            cursor_lpz.execute(
+                                "INSERT INTO Autor (AutorID, Autorname) VALUES (%s, %s)",
+                                (autor_id, name)
+                            )
+                            connection.commit()
+    
+                        cursor_lpz.execute(
+                            "INSERT INTO Buch_Autor (PID, AutorID) SELECT %s, %s "
+                            + "WHERE NOT EXISTS (SELECT 1 FROM Buch_Autor where PID = %s AND AutorID = %s);",
+                            (pid, autor_id, pid, autor_id)
+                        )
+                        connection.commit()
+
+            #####E
+
+
+
+
+
+
+
+
+
             elif produktart == 'DVD':
                 pass
 
-            elif produktart == 'Book':
-                pass
+
+
+
+
+
+
+
+
 
         except psycopg2.Error as error: # Fehlernachricht in einer Tabelle loggen
             connection.rollback()

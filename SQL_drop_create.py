@@ -10,7 +10,7 @@ sql_creates = '''CREATE TABLE FehlerLog (
 
 
 CREATE TABLE Produkt (
-  PID VARCHAR(255) PRIMARY KEY,
+  PID VARCHAR(20) PRIMARY KEY,
   Titel VARCHAR(255),
   Rating DECIMAL(2,1),
   Verkaufsrang INT,
@@ -18,7 +18,7 @@ CREATE TABLE Produkt (
 );
 
 CREATE TABLE Buch (
-  PID VARCHAR(255) PRIMARY KEY,
+  PID VARCHAR(20) PRIMARY KEY,
   Seitenzahl INT,
   Erscheinungsdatum DATE,
   ISBN VARCHAR(255),
@@ -27,7 +27,7 @@ CREATE TABLE Buch (
 );
 
 CREATE TABLE DVD (
-  PID VARCHAR(255) PRIMARY KEY,
+  PID VARCHAR(20) PRIMARY KEY,
   Format VARCHAR(255),
   Laufzeit INT,
   Regioncode VARCHAR(255),
@@ -35,44 +35,21 @@ CREATE TABLE DVD (
 );
 
 CREATE TABLE CD (
-  PID VARCHAR(255) PRIMARY KEY,
+  PID VARCHAR(20) PRIMARY KEY,
   Label VARCHAR(255),
   Erscheinungsdatum DATE,
   FOREIGN KEY (PID) REFERENCES Produkt(PID),
   CONSTRAINT CD_Kuenstler_PID_fk FOREIGN KEY (PID) REFERENCES Produkt(PID)
 );
 
-CREATE TABLE Kuenstler (
-  KuenstlerID INT PRIMARY KEY,
-  Kuenstlername VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE CD_Kuenstler (
-  PID VARCHAR(255),
-  KuenstlerID INT,
-  PRIMARY KEY (PID, KuenstlerID),
-  FOREIGN KEY (PID) REFERENCES CD(PID),
-  FOREIGN KEY (KuenstlerID) REFERENCES Kuenstler(KuenstlerID)
-);
-
-
-CREATE TABLE Titel (
-  PID VARCHAR(255),
-  Titelname VARCHAR(255),
-  PRIMARY KEY(PID, Titelname),
-  FOREIGN KEY (PID) REFERENCES CD(PID)
-);
-
-
 CREATE TABLE Autor (
   AutorID INT PRIMARY KEY,
-  Vorname VARCHAR(255),
-  Nachname VARCHAR(255)
+  Autorname VARCHAR(255)
 );
 
 
 CREATE TABLE Buch_Autor (
-  PID VARCHAR(255),
+  PID VARCHAR(20),
   AutorID INT,
   PRIMARY KEY (PID, AutorID),
   FOREIGN KEY (PID) REFERENCES Buch(PID),
@@ -86,7 +63,7 @@ CREATE TABLE DVD_Beteiligte (
 );
 
 CREATE TABLE DVD_Beteiligungen (
-  PID VARCHAR(255),
+  PID VARCHAR(20),
   BeteiligtenID INT,
   Rolle VARCHAR(255),
   PRIMARY KEY (PID, BeteiligtenID),
@@ -94,6 +71,26 @@ CREATE TABLE DVD_Beteiligungen (
   FOREIGN KEY (BeteiligtenID) REFERENCES DVD_Beteiligte(BeteiligtenID)
 );
 
+CREATE TABLE Kuenstler (
+  KuenstlerID INT PRIMARY KEY,
+  Kuenstlername VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE CD_Kuenstler (
+  PID VARCHAR(20),
+  KuenstlerID INT,
+  PRIMARY KEY (PID, KuenstlerID),
+  FOREIGN KEY (PID) REFERENCES CD(PID),
+  FOREIGN KEY (KuenstlerID) REFERENCES Kuenstler(KuenstlerID)
+);
+
+
+CREATE TABLE Titel (
+  PID VARCHAR(20),
+  Titelname VARCHAR(255),
+  PRIMARY KEY(PID, Titelname),
+  FOREIGN KEY (PID) REFERENCES CD(PID)
+);
 
 CREATE TABLE Kategorie (
   KatID INT PRIMARY KEY,
@@ -104,7 +101,7 @@ CREATE TABLE Kategorie (
 
 CREATE TABLE Produkt_Kategorie (
   KatID INT,
-  PID VARCHAR(255),
+  PID VARCHAR(20),
   PRIMARY KEY (KatID, PID),
   FOREIGN KEY (KatID) REFERENCES Kategorie(KatID),
   FOREIGN KEY (PID) REFERENCES Produkt(PID)
@@ -130,8 +127,8 @@ CREATE TABLE Zustand (
 );
 
 CREATE TABLE Angebot (
-    AngebotsID INT PRIMARY KEY,
-	PID VARCHAR(255),
+	AngebotsID INT PRIMARY KEY,
+	PID VARCHAR(20),
 	FID INT,
 	Preis DECIMAL(10,2),
 	Zustandsnummer INT,
@@ -143,15 +140,13 @@ CREATE TABLE Angebot (
 );
 
 CREATE TABLE Kunde (
-	KundenID INT PRIMARY KEY,
-	Vorname VARCHAR(255),
-	Nachname VARCHAR(255)
+	KundenID INT PRIMARY KEY
 );
 
 CREATE TABLE Konto (
-    KundenID INT,
-	Kontonummer INT,
-    PRIMARY KEY(KundenID, Kontonummer),
+    	KundenID INT,
+Kontonummer INT,
+    	PRIMARY KEY(KundenID, Kontonummer),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID)
 );
 
@@ -165,8 +160,12 @@ CREATE TABLE Lieferadresse (
 
 CREATE TABLE Kundenrezension (
 	KundenID INT,
-	PID VARCHAR(255),
+	PID VARCHAR(20),
 	Punkte INT CHECK (Punkte BETWEEN 1 AND 5),
+	Helpful INT,
+	Summary TEXT,
+	Content TEXT,
+	Reviewdate DATE,
 	PRIMARY KEY (KundenID, PID),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID),
 	FOREIGN KEY (PID) REFERENCES Produkt(PID)
@@ -189,25 +188,25 @@ FOR EACH ROW
 EXECUTE FUNCTION UpdateRatingFunction();
 
 CREATE TABLE Kauf (
+	AngebotsID INT,
 	KundenID INT,
-	PID VARCHAR(255),
-	FID INT,
-	Preis DECIMAL(10,2),
-	Zustandsnummer INT,
 	Menge INT,
 	Zeitpunkt TIMESTAMP,
-	PRIMARY KEY (KundenID, PID, FID, Preis, Zustandsnummer, Zeitpunkt),
+	PRIMARY KEY (KundenID, AngebotsID, Zeitpunkt),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID),
-	FOREIGN KEY (PID, FID, Preis, Zustandsnummer) REFERENCES Angebot(PID, FID, Preis, Zustandsnummer)
+	FOREIGN KEY (AngebotsID) REFERENCES Angebot(AngebotsID)
 );
 
-CREATE TABLE Ähnlichkeit (
-	PID1 VARCHAR(255),
-	PID2 VARCHAR(255),
-	Ähnlichkeitswert DECIMAL(10,2),
+CREATE TABLE Aehnlichkeit (
+	PID1 VARCHAR(20),
+	PID2 VARCHAR(20),
+	/* Aehnlichkeitswert DECIMAL(10,2), */
 	PRIMARY KEY (PID1, PID2),
 	FOREIGN KEY (PID1) REFERENCES Produkt(PID),
 	FOREIGN KEY (PID2) REFERENCES Produkt(PID)
 	/* , CHECK (PID1 < PID2) */
 );
+
+
+
 '''
