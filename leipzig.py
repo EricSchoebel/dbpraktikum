@@ -143,7 +143,13 @@ with connection.cursor() as cursor_lpz:
                         #Test, dass wirklich nur EUR-Preise
                         if (currency != 'EUR') and (len(currency)>0):
                             print("currency ist nicht null und nicht Euro: "+currency)
-                            #tritt zweimal auf, aber das es "EUREUR" ist, kann man davon ausgehen, dass Euro gemeint war
+                            #tritt bei Music zweimal auf, aber das es "EUREUR" ist, kann man davon ausgehen, dass Euro gemeint war
+                            eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
+                                                     + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
+                                                     + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                                 (eigene_fehlernachricht,))
+                            connection.commit()
 
 
                     elif punkt.tag == 'labels':
@@ -247,97 +253,7 @@ with connection.cursor() as cursor_lpz:
 
 
 
-                #Suche Zustandsnummer fuer gegebenen Zustand
-                #eig. fuer alle Produktarten gleich
-                cursor_lpz.execute(
-                    "SELECT Zustandsnummer FROM Zustand WHERE Beschreibung = %s;",
-                    (zustand,)
-                )
-                zustandsnummer_aktuell = cursor_lpz.fetchone()
 
-
-
-
-
-
-
-
-                # Hole maximum AngebotsID von AngebotTabelle (Analog zu Kuenstlertabelle in der Hinsicht)
-                cursor_lpz.execute("SELECT MAX(AngebotsID) FROM Angebot;")
-                max_angebot_id_zaehler = cursor_lpz.fetchone()[0]
-
-                # setze initiale angebot_id_zaehler auf maximumn angebot_id_zaehler
-                if max_angebot_id_zaehler is None:
-                    angebot_id_zaehler = 0
-                else:
-                    angebot_id_zaehler = max_angebot_id_zaehler
-
-                #Idee: Check ob es das Angebot in dieser Form schon gibt
-                #  -> Wenn ja, dann "Menge" um eins hoch (uber UPDATE in SQL)
-                #  -> Wenn nein, dann neues Tupel (mit neuer AngebotsID) in AngebotTabelle
-
-                # Check ob es das Angebot in dieser Form schon gibt
-                cursor_lpz.execute(
-                    "SELECT AngebotsID, Menge FROM Angebot WHERE PID = %s AND FID = %s AND Preis = %s AND Zustandsnummer = %s;",
-                    (pid, fid_lpz, europreis, zustandsnummer_aktuell)
-                )
-                existing_offer = cursor_lpz.fetchone()
-
-                #Fall: Angebot existiert bereits
-                if existing_offer is not None:
-                    angebots_id = existing_offer[0]
-                    menge = existing_offer[1] + 1
-
-                    # Aktualisiere die Menge im vorhandenen Angebot
-                    cursor_lpz.execute(
-                        "UPDATE Angebot SET Menge = %s WHERE AngebotsID = %s;",
-                        (menge, angebots_id)
-                    )
-                    connection.commit()
-
-                # Fall: Angebot existiert noch nicht
-                else:
-                    angebot_id_zaehler = angebot_id_zaehler + 1
-
-                    # Neues Tupel in AngebotTabelle einfügen
-                    cursor_lpz.execute(
-                        "INSERT INTO Angebot (AngebotsID, PID, FID, Preis, Zustandsnummer, Menge) "
-                        "VALUES (%s, %s, %s, %s, %s, %s);",
-                        (angebot_id_zaehler, pid, fid_lpz, europreis, zustandsnummer_aktuell, 1)  # Annahme: Menge startet bei 1
-                    )
-                    connection.commit()
-
-                #AehnlichkeitTabelle befuellen (fuaer alle Arten gleich)
-                # (lexikographisch) kleinere PID ist immer PID1
-                # aehnliche_produkte_tupelliste  nutzen
-                # (aehnlich_pid, aehnlich_titel)     wenn das Prdukt noch nicht ProduktTabelle da noch eitnragne
-                #aehnliche_produkte_tupelliste
-                for tupel in aehnliche_produkte_tupelliste:
-                    cursor_lpz.execute(
-                        "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) "
-                        +"SELECT %s, %s, %s, %s, %s "
-                        +"WHERE NOT EXISTS (SELECT 1 FROM Produkt WHERE PID = %s);",
-                        (tupel[0], tupel[1], None, None, None, tupel[0])
-                    )
-                    connection.commit()
-
-                    kleiner = 0
-                    groesser = 0
-                    if str(pid) < str(tupel[0]):
-                        kleiner = pid
-                        groesser = tupel[0]
-                    elif str(tupel[0]) < str(pid):
-                        kleiner = tupel[0]
-                        groesser = pid
-
-                    if kleiner != groesser:
-                        cursor_lpz.execute(
-                            "INSERT INTO Aehnlichkeit (PID1, PID2) "
-                            + "SELECT %s, %s "
-                            + "WHERE NOT EXISTS (SELECT 1 FROM Aehnlichkeit WHERE PID1 = %s and PID2 = %s);",
-                            (kleiner, groesser, kleiner, groesser)
-                        )
-                        connection.commit()
 
 
 
@@ -363,6 +279,15 @@ with connection.cursor() as cursor_lpz:
                             europreis = decimal.Decimal(multiplizierer) * decimal.Decimal(centpreis)
                         else:
                             europreis = None
+                        # Test, dass wirklich nur EUR-Preise
+                        if (currency != 'EUR') and (len(currency) > 0):
+                            print("currency ist nicht null und nicht Euro: " + currency)
+                            eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
+                                                     + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
+                                                     + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                                       (eigene_fehlernachricht,))
+                            connection.commit()
 
                     elif punkt.tag == 'bookspec':
                         erscheinungsdatum_buch_roh = [publicationdate.get('date') for publicationdate in punkt.findall('publication')]
@@ -414,7 +339,7 @@ with connection.cursor() as cursor_lpz:
                     (pid, seitenzahl, erscheinungsdatum_buch, erscheinungsdatum_buch, isbn, longest_verlag, pid)
                 )
                 connection.commit()
-                print(erscheinungsdatum_buch)
+                #print(erscheinungsdatum_buch)
 
 
 
@@ -476,7 +401,315 @@ with connection.cursor() as cursor_lpz:
 
 
             elif produktart == 'DVD':
-                pass
+                for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
+                    if punkt.tag == 'title':
+                        titel = punkt.text
+                    elif punkt.tag == 'price': #das ist zwar auch bei jeder Produktart das gleiche Vorgehen
+                        multiplizierer = punkt.get('mult')
+                        zustand = punkt.get('state')
+                        currency = punkt.get('currency')
+                        centpreis = punkt.text
+                        if centpreis is not None and multiplizierer is not None:
+                            europreis = decimal.Decimal(multiplizierer) * decimal.Decimal(centpreis)
+                        else:
+                            europreis = None
+                        # Test, dass wirklich nur EUR-Preise
+                        if (currency != 'EUR') and (len(currency) > 0):
+                            print("currency ist nicht null und nicht Euro: " + currency)
+                            eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
+                                                     + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
+                                                     + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                                       (eigene_fehlernachricht,))
+                            connection.commit()
+
+                    elif punkt.tag == 'dvdspec':
+
+                        #Erscheinungsdatum soll bei dvd nicht gespeichert werden lt. Aufgabenstellung, aber so wuerde es gehen:
+                        #erscheinungsdatum_dvd_roh = [releasedate.text for releasedate in punkt.findall('releasedate')]
+                        #if erscheinungsdatum_dvd_roh is None:
+                        #    erscheinungsdatum_dvd = None
+                        #else:
+                        #    erscheinungsdatum_dvd = erscheinungsdatum_dvd_roh[0]
+
+                        format_roh = [format.text for format in punkt.findall('format')]
+                        if format_roh is None:
+                            format = None
+                        else:
+                            format = format_roh[0]
+
+                        regioncode_roh = [regioncode.text for regioncode in punkt.findall('regioncode')]
+                        if regioncode_roh is None:
+                            regioncode = None
+                        else:
+                            regioncode = regioncode_roh[0]
+
+                        laufzeit_roh = [runningtime.text for runningtime in punkt.findall('runningtime')]
+                        if laufzeit_roh is None:
+                            laufzeit = None
+                        else:
+                            laufzeit = laufzeit_roh[0]
+
+                    elif punkt.tag == 'actors':
+                        actors = [actor.get('name') for actor in punkt.findall('actor')]
+
+                    elif punkt.tag == 'creators':
+                        creators = [creator.get('name') for creator in punkt.findall('creator')]
+
+                    elif punkt.tag == 'directors':
+                        directors = [director.get('name') for director in punkt.findall('director')]
+
+                    elif punkt.tag == 'similars':
+                        # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
+                        aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
+                                            for sim_product in punkt.findall('sim_product')]
+
+                # Einschreiben in Tabellen
+                ####A
+                cursor_lpz.execute(
+                    "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                )
+                connection.commit()
+
+                cursor_lpz.execute(
+                    "INSERT INTO DVD (PID, Format, Laufzeit, Regioncode) SELECT %s, %s, %s, %s "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM DVD where PID = %s);",
+                    (pid, format, laufzeit, regioncode, pid)
+                )
+                connection.commit()
+
+
+
+
+                ######B
+
+                # Retrieve the maximum beteiligten_id from the DVD_Beteiligte table
+                cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
+                max_beteiligten_id = cursor_lpz.fetchone()[0]
+
+                # DVD_BeteiligteTabelle bezeichnet als BeteiligteTabelle im Folgenden
+                # wenn es den Beteiligtennamen schon gibt, dann keinen neuen Eintrag in Beteiligtentabelle machen,
+                # sondern mit bestehender BeteiligtenID die Verbindung in DVD_Beteiligungen (=  n:m-Tabelle) machen
+                # Logik fuer actors, creators, directors analog, nur rolle unterscheidet sich in der DVD_Beteiligungen-Tabelle (d.h. in der n:m-Tabelle)
+                for actorname in actors:
+                    rolle = 'actor'
+                    names = actorname.split(
+                        "/")  # falls in einem Actornamen eig. mehrere mit "/" separiert reingechrieben
+
+                    for name in names:
+                        # print(name)
+                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
+                        max_beteiligten_id = cursor_lpz.fetchone()[0]
+
+                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        if max_beteiligten_id is None:
+                            beteiligten_id = 0
+                        else:
+                            beteiligten_id = max_beteiligten_id
+
+                        cursor_lpz.execute(
+                            "SELECT BeteiligtenID FROM DVD_Beteiligte WHERE Beteiligtenname = %s;",
+                            (name,)
+                        )
+                        existing_beteiligter = cursor_lpz.fetchone()
+                        if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
+                            beteiligten_id = existing_beteiligter[0]
+                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
+                            beteiligten_id = beteiligten_id + 1
+                            cursor_lpz.execute(
+                                "INSERT INTO DVD_Beteiligte (BeteiligtenID, Beteiligtenname) VALUES (%s, %s)",
+                                (beteiligten_id, name)
+                            )
+                            connection.commit()
+
+                        cursor_lpz.execute(
+                            "INSERT INTO DVD_Beteiligungen (PID, BeteiligtenID, Rolle) SELECT %s, %s, %s "
+                            + "WHERE NOT EXISTS (SELECT 1 FROM DVD_Beteiligungen where PID = %s AND BeteiligtenID = %s AND Rolle = %s);",
+                            (pid, beteiligten_id, rolle, pid, beteiligten_id, rolle)
+                        )
+                        connection.commit()
+
+                for creatorname in creators:
+                    rolle = 'creator'
+                    names = creatorname.split(
+                        "/")
+
+                    for name in names:
+                        # print(name)
+                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
+                        max_beteiligten_id = cursor_lpz.fetchone()[0]
+
+                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        if max_beteiligten_id is None:
+                            beteiligten_id = 0
+                        else:
+                            beteiligten_id = max_beteiligten_id
+
+                        cursor_lpz.execute(
+                            "SELECT BeteiligtenID FROM DVD_Beteiligte WHERE Beteiligtenname = %s;",
+                            (name,)
+                        )
+                        existing_beteiligter = cursor_lpz.fetchone()
+                        if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
+                            beteiligten_id = existing_beteiligter[0]
+                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
+                            beteiligten_id = beteiligten_id + 1
+                            cursor_lpz.execute(
+                                "INSERT INTO DVD_Beteiligte (BeteiligtenID, Beteiligtenname) VALUES (%s, %s)",
+                                (beteiligten_id, name)
+                            )
+                            connection.commit()
+
+                        cursor_lpz.execute(
+                            "INSERT INTO DVD_Beteiligungen (PID, BeteiligtenID, Rolle) SELECT %s, %s, %s "
+                            + "WHERE NOT EXISTS (SELECT 1 FROM DVD_Beteiligungen where PID = %s AND BeteiligtenID = %s AND Rolle = %s);",
+                            (pid, beteiligten_id, rolle, pid, beteiligten_id, rolle)
+                        )
+                        connection.commit()
+
+                for directorname in directors:
+                    rolle = 'director'
+                    names = directorname.split(
+                        "/")
+
+                    for name in names:
+                        # print(name)
+                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
+                        max_beteiligten_id = cursor_lpz.fetchone()[0]
+
+                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        if max_beteiligten_id is None:
+                            beteiligten_id = 0
+                        else:
+                            beteiligten_id = max_beteiligten_id
+
+                        cursor_lpz.execute(
+                            "SELECT BeteiligtenID FROM DVD_Beteiligte WHERE Beteiligtenname = %s;",
+                            (name,)
+                        )
+                        existing_beteiligter = cursor_lpz.fetchone()
+                        if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
+                            beteiligten_id = existing_beteiligter[0]
+                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
+                            beteiligten_id = beteiligten_id + 1
+                            cursor_lpz.execute(
+                                "INSERT INTO DVD_Beteiligte (BeteiligtenID, Beteiligtenname) VALUES (%s, %s)",
+                                (beteiligten_id, name)
+                            )
+                            connection.commit()
+
+                        cursor_lpz.execute(
+                            "INSERT INTO DVD_Beteiligungen (PID, BeteiligtenID, Rolle) SELECT %s, %s, %s "
+                            + "WHERE NOT EXISTS (SELECT 1 FROM DVD_Beteiligungen where PID = %s AND BeteiligtenID = %s AND Rolle = %s);",
+                            (pid, beteiligten_id, rolle, pid, beteiligten_id, rolle)
+                        )
+                        connection.commit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+            #INSERTs, die fuer alle Produktarten gleich:
+
+            # Suche Zustandsnummer fuer gegebenen Zustand
+            # eig. fuer alle Produktarten gleich
+            cursor_lpz.execute(
+                "SELECT Zustandsnummer FROM Zustand WHERE Beschreibung = %s;",
+                (zustand,)
+            )
+            zustandsnummer_aktuell = cursor_lpz.fetchone()
+
+            # Hole maximum AngebotsID von AngebotTabelle (Analog zu Kuenstlertabelle in der Hinsicht)
+            cursor_lpz.execute("SELECT MAX(AngebotsID) FROM Angebot;")
+            max_angebot_id_zaehler = cursor_lpz.fetchone()[0]
+
+            # setze initiale angebot_id_zaehler auf maximumn angebot_id_zaehler
+            if max_angebot_id_zaehler is None:
+                angebot_id_zaehler = 0
+            else:
+                angebot_id_zaehler = max_angebot_id_zaehler
+
+            # Idee: Check ob es das Angebot in dieser Form schon gibt
+            #  -> Wenn ja, dann "Menge" um eins hoch (uber UPDATE in SQL)
+            #  -> Wenn nein, dann neues Tupel (mit neuer AngebotsID) in AngebotTabelle
+
+            # Check ob es das Angebot in dieser Form schon gibt
+            cursor_lpz.execute(
+                "SELECT AngebotsID, Menge FROM Angebot WHERE PID = %s AND FID = %s AND Preis = %s AND Zustandsnummer = %s;",
+                (pid, fid_lpz, europreis, zustandsnummer_aktuell)
+            )
+            existing_offer = cursor_lpz.fetchone()
+
+            # Fall: Angebot existiert bereits
+            if existing_offer is not None:
+                angebots_id = existing_offer[0]
+                menge = existing_offer[1] + 1
+
+                # Aktualisiere die Menge im vorhandenen Angebot
+                cursor_lpz.execute(
+                    "UPDATE Angebot SET Menge = %s WHERE AngebotsID = %s;",
+                    (menge, angebots_id)
+                )
+                connection.commit()
+
+            # Fall: Angebot existiert noch nicht
+            else:
+                angebot_id_zaehler = angebot_id_zaehler + 1
+
+                # Neues Tupel in AngebotTabelle einfügen
+                cursor_lpz.execute(
+                    "INSERT INTO Angebot (AngebotsID, PID, FID, Preis, Zustandsnummer, Menge) "
+                    "VALUES (%s, %s, %s, %s, %s, %s);",
+                    (angebot_id_zaehler, pid, fid_lpz, europreis, zustandsnummer_aktuell, 1)
+                    # Annahme: Menge startet bei 1
+                )
+                connection.commit()
+
+            # AehnlichkeitTabelle befuellen (fuer alle Arten gleich)
+            # (lexikographisch) kleinere PID ist immer PID1
+            # aehnliche_produkte_tupelliste  nutzen
+            # (aehnlich_pid, aehnlich_titel)
+            # aehnliche_produkte_tupelliste
+            for tupel in aehnliche_produkte_tupelliste:
+                #wenn das AehnlichkeitsProdukt noch nicht in ProduktTabelle, dann noch da eintragen
+                cursor_lpz.execute(
+                    "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) "
+                    + "SELECT %s, %s, %s, %s, %s "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Produkt WHERE PID = %s);",
+                    (tupel[0], tupel[1], None, None, None, tupel[0])
+                )
+                connection.commit()
+
+                kleiner = 0
+                groesser = 0
+                if str(pid) < str(tupel[0]):
+                    kleiner = pid
+                    groesser = tupel[0]
+                elif str(tupel[0]) < str(pid):
+                    kleiner = tupel[0]
+                    groesser = pid
+
+                if kleiner != groesser:
+                    cursor_lpz.execute(
+                        "INSERT INTO Aehnlichkeit (PID1, PID2) "
+                        + "SELECT %s, %s "
+                        + "WHERE NOT EXISTS (SELECT 1 FROM Aehnlichkeit WHERE PID1 = %s and PID2 = %s);",
+                        (kleiner, groesser, kleiner, groesser)
+                    )
+                    connection.commit()
 
 
 

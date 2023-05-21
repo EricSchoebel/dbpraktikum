@@ -58,15 +58,14 @@ CREATE TABLE Buch_Autor (
 
 CREATE TABLE DVD_Beteiligte (
   BeteiligtenID INT PRIMARY KEY,
-  Vorname VARCHAR(255),
-  Nachname VARCHAR(255)
+  Beteiligtenname VARCHAR(255)
 );
 
 CREATE TABLE DVD_Beteiligungen (
   PID VARCHAR(20),
   BeteiligtenID INT,
   Rolle VARCHAR(255),
-  PRIMARY KEY (PID, BeteiligtenID),
+  PRIMARY KEY (PID, BeteiligtenID, Rolle),
   FOREIGN KEY (PID) REFERENCES DVD(PID),
   FOREIGN KEY (BeteiligtenID) REFERENCES DVD_Beteiligte(BeteiligtenID)
 );
@@ -197,15 +196,25 @@ CREATE TABLE Kauf (
 	FOREIGN KEY (AngebotsID) REFERENCES Angebot(AngebotsID)
 );
 
+CREATE OR REPLACE FUNCTION compare_strings_less_than(text, text)
+  RETURNS boolean AS
+$$
+BEGIN
+  RETURN $1 < $2;
+END;
+$$
+LANGUAGE plpgsql;
+
 CREATE TABLE Aehnlichkeit (
 	PID1 VARCHAR(20),
 	PID2 VARCHAR(20),
 	/* Aehnlichkeitswert DECIMAL(10,2), */
 	PRIMARY KEY (PID1, PID2),
 	FOREIGN KEY (PID1) REFERENCES Produkt(PID),
-	FOREIGN KEY (PID2) REFERENCES Produkt(PID)
-	/* , CHECK (PID1 < PID2) */
+	FOREIGN KEY (PID2) REFERENCES Produkt(PID),
+	CHECK (compare_strings_less_than(PID1, PID2))
 );
+
 
 
 
