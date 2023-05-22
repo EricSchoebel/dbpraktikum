@@ -268,21 +268,6 @@ with connection.cursor() as cursor_lpz:
                     connection.commit()
 
 
-
-
-
-
-
-
-
-
-
-
-
-                #if item.get('title') =="In a Pig's Eye: Reflections on the Police State Re":
-                 #   print(item.get('pgroup'))
-
-
             elif (produktart == 'Book') and not (str(pid)).startswith('B'):
                 for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
@@ -387,10 +372,6 @@ with connection.cursor() as cursor_lpz:
                     connection.commit()
                     print(eigene_fehlernachricht)
 
-
-
-                ######B
-    
                 # Retrieve the maximum autor_id from the Autor table
                 cursor_lpz.execute("SELECT MAX(AutorID) FROM Autor;")
                 max_autor_id = cursor_lpz.fetchone()[0]
@@ -436,15 +417,6 @@ with connection.cursor() as cursor_lpz:
                             (pid, autor_id, pid, autor_id)
                         )
                         connection.commit()
-
-            #####E
-
-
-
-
-
-
-
 
 
             elif produktart == 'DVD':
@@ -760,14 +732,6 @@ with connection.cursor() as cursor_lpz:
                         (kleiner, groesser, kleiner, groesser)
                     )
                     connection.commit()
-
-
-
-
-
-
-
-
 
 
         except psycopg2.Error as error: # Fehlernachricht in einer Tabelle loggen
