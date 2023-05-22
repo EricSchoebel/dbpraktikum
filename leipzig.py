@@ -22,6 +22,7 @@ try:
 except psycopg2.Error as error:
     print("Error connecting to PostgreSQL:", error)
 
+#----------LEIPZIG TEIL--------------------
 
 # Etree-package initialisieren
 tree_two = ET.parse("backend\data\leipzig_transformed.xml")
@@ -93,6 +94,7 @@ with connection.cursor() as cursor_lpz:
             traceback_string = str(traceback.format_exc())
             start_index = traceback_string.find("psycopg2.errors.") + len("psycopg2.errors.")
             error_message = (traceback_string[start_index:]).lstrip().replace('\n', ' ')   #lstrip() entfernt Anfangsleerzeichen
+            error_message = "ERROR: " + error_message
 
             with connection.cursor() as error_cursor:
                 error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))
@@ -125,7 +127,18 @@ with connection.cursor() as cursor_lpz:
                 bild = None
 
 
-            if produktart == 'Music':
+            if (produktart == 'Music') or (produktart == 'Book' and (str(pid)).startswith('B')):
+
+                # WARNING bzgl. (wahrscheinl.) Hoerbuechern, z.B.: PID "B000AMF7X8"
+                if ( produktart == 'Book' and (str(pid)).startswith('B') ):
+                    eigene_fehlernachricht = 'WARNING: Speicherung erfolgt unter "CD", obwohl Produktart "Book" vorhanden.' \
+                                             + ' Gründe wie PID sprechen für CD. Ggf. manuell überprüfen. Warning entstand bei: PID: ' + pid \
+                                             + ', Produktart: ' + produktart
+                    cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                       (eigene_fehlernachricht,))
+                    connection.commit()
+                    print(eigene_fehlernachricht)
+
                 kuenstler_total = []
                 for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
@@ -160,7 +173,10 @@ with connection.cursor() as cursor_lpz:
                         if erscheinungsdatum_roh is None:
                             erscheinungsdatum = None  # Or provide a default value or expression if needed
                         else:
-                            erscheinungsdatum = erscheinungsdatum_roh[0]
+                            try:
+                                erscheinungsdatum = erscheinungsdatum_roh[0]
+                            except:
+                                erscheinungsdatum = None
                         #erscheinungsdatum = str(erscheinungsdatum_roh[0]) #ohenhin bloss einelementige Liste
                         #print(erscheinungsdatum)
                     elif punkt.tag == 'tracks':
@@ -210,6 +226,7 @@ with connection.cursor() as cursor_lpz:
                     for name in names:
                         #print(name)
                         # Hole maximum kuenstler_id von KuenstlerTabelle
+                        name = name.lstrip().rstrip() #fuehrende und endende Blanks loeschen fuer semantische Gleichheit
                         cursor_lpz.execute("SELECT MAX(KuenstlerID) FROM Kuenstler;")
                         max_kuenstler_id = cursor_lpz.fetchone()[0]
 
@@ -266,7 +283,7 @@ with connection.cursor() as cursor_lpz:
                  #   print(item.get('pgroup'))
 
 
-            elif produktart == 'Book':
+            elif (produktart == 'Book') and not (str(pid)).startswith('B'):
                 for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
                         titel = punkt.text
@@ -308,6 +325,21 @@ with connection.cursor() as cursor_lpz:
                         else:
                             isbn = isbn_roh[0]
 
+                        binding_roh = [binding.text for binding in punkt.findall('binding')]
+                        if binding_roh is None:
+                            binding = None
+                        else:
+                            binding = binding_roh[0]
+
+                        if binding == 'CD':
+                            eigene_fehlernachricht = 'WARNING: Speicherung erfolgt unter "Buch", obwohl Binding "CD" vorhanden. Hinweis fuer ein potenzielles Hoerbuch,' \
+                                                     + ' ggf. Änderungen vornehmen. Warning entstand bei: PID: ' + pid \
+                                                     + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                               (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                     elif punkt.tag == 'publishers':
                         verlage = [publisher.get('name') for publisher in
                                   punkt.findall('publisher')]  # ".get('')" weil es Attribut "name" in Untertag <publisher> ist
@@ -321,6 +353,10 @@ with connection.cursor() as cursor_lpz:
                         # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
                         aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
                                             for sim_product in punkt.findall('sim_product')]
+
+                    #nur fuer TrackCheck ob eventuell Hoerbuch:
+                    elif punkt.tag == 'tracks':
+                        titles = [track.text for track in punkt.findall('title')]
 
                 # Einschreiben in Tabellen
                 ####A
@@ -341,6 +377,16 @@ with connection.cursor() as cursor_lpz:
                 connection.commit()
                 #print(erscheinungsdatum_buch)
 
+                #WARNING bzgl. (wahrscheinl.) Hoerbuechern
+                if len(titles)>0:
+                    eigene_fehlernachricht = 'WARNING: Speicherung erfolgt unter "Buch", obwohl Tracks vorhanden. Hinweis fuer ein potenzielles Hoerbuch,' \
+                                             + ' ggf. Änderungen vornehmen. Warning entstand bei: PID: ' + pid \
+                                             + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
+                    cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                       (eigene_fehlernachricht,))
+                    connection.commit()
+                    print(eigene_fehlernachricht)
+
 
 
                 ######B
@@ -359,6 +405,7 @@ with connection.cursor() as cursor_lpz:
                     for name in names:
                         # print(name)
                         # Hole maximum autor_id von AutorTabelle
+                        name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(AutorID) FROM Autor;")
                         max_autor_id = cursor_lpz.fetchone()[0]
     
@@ -501,6 +548,7 @@ with connection.cursor() as cursor_lpz:
                     for name in names:
                         # print(name)
                         # Hole maximum beteiligten_id von BeteiligteTabelle
+                        name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_lpz.fetchone()[0]
 
@@ -540,6 +588,7 @@ with connection.cursor() as cursor_lpz:
                     for name in names:
                         # print(name)
                         # Hole maximum beteiligten_id von BeteiligteTabelle
+                        name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_lpz.fetchone()[0]
 
@@ -579,6 +628,7 @@ with connection.cursor() as cursor_lpz:
                     for name in names:
                         # print(name)
                         # Hole maximum beteiligten_id von BeteiligteTabelle
+                        name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_lpz.fetchone()[0]
 
@@ -728,6 +778,7 @@ with connection.cursor() as cursor_lpz:
             traceback_string = str(traceback.format_exc())
             start_index = traceback_string.find("psycopg2.errors.") + len("psycopg2.errors.")
             error_message = (traceback_string[start_index:]).lstrip().replace('\n', ' ')   #lstrip() entfernt Anfangsleerzeichen
+            error_message = "ERROR: " + error_message
 
             with connection.cursor() as error_cursor:
                 error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))

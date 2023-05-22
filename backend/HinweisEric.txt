@@ -8,12 +8,12 @@ exec(open('script2.py').read())
 
 
 
-string = "   Hello, World!   "
+string1 = "   Hello, World!   "
 
 left_stripped_string = string.lstrip()
 right_stripped_string = string.rstrip()
 
-print(left_stripped_string)   # Output: "Hello, World!   "
-print(right_stripped_string)  # Output: "   Hello, World!"
+#print(left_stripped_string)   # Output: "Hello, World!   "
+#print(right_stripped_string)  # Output: "   Hello, World!"
 
 
