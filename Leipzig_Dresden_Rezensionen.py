@@ -8,6 +8,8 @@ import traceback # NEU
 #import os
 from SQL_drop_create import sql_drop_tables, sql_creates
 import decimal
+import csv
+import html
 
 
 try:
@@ -42,6 +44,7 @@ autor_id = 0
 beteiligten_id = 0
 filialen_id = 0
 angebot_id_zaehler = 0
+guest_nummer_zaehler = 0
 
 #Allgemeine Struktur fuer ein Item: I) spezifische Infos rausziehen , II) direkt in jeweilige Tabellen reinschreiben
 with connection.cursor() as cursor_lpz:
@@ -1551,6 +1554,65 @@ with connection.cursor() as cursor_dresden:
 connection.commit()
 
 #---------DRESDEN ENDE-----------
+
+
+#---------KUNDENREZENSIONEN ANFANG--------------
+
+with connection.cursor() as cursor:
+    with open(r"backend\data\reviews.csv", encoding="utf8") as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=",")
+        #csv-Header ueberspringen
+        next(csv_reader)
+        for row in csv_reader:
+            pid = row[0]
+            KundenID = row[4]
+            #alle "guest" als verschiedene Kunden behandeln
+            if KundenID == "guest":
+                guest_nummer_zaehler += 1
+                KundenID = KundenID+str(guest_nummer_zaehler)
+
+            try:
+                # Produkt einfuegen, wenn es neu ist
+                cursor.execute(
+                    "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
+                    (pid, None, None, None, None, pid)  # hier schreibst Variablen die rein sollen
+                )
+                # Kunden einfuegen, wenn er neu ist
+                cursor.execute(
+                    "INSERT INTO Kunde(KundenID) SELECT %s"
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Kunde WHERE KundenID = %s);",
+                    (KundenID, KundenID)
+                )
+                # Kundenrezension einfuegen
+                # html.unescape liest Sonderzeichen richtig aus
+                cursor.execute(
+                    "INSERT INTO Kundenrezension(KundenID, PID, Punkte, Helpful, Summary, Content, Reviewdate) VALUES (%s, %s, %s, %s, %s, %s, %s);",
+                    (KundenID, pid, row[1], row[2], html.unescape(row[5]), html.unescape(row[6]), row[3])
+                )
+
+                connection.commit()
+
+            except psycopg2.Error as error:  # Fehlernachricht in einer Tabelle loggen
+                connection.rollback()
+                # error_message = str(error)  #kurze error message fuer Tabelle
+
+                # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
+                traceback_string = str(traceback.format_exc())
+                start_index = traceback_string.find("psycopg2.errors.") + len("psycopg2.errors.")
+                error_message = (traceback_string[start_index:]).lstrip().replace('\n',
+                                                                                  ' ')  # lstrip() entfernt Anfangsleerzeichen
+
+                with connection.cursor() as error_cursor:
+                    error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))
+                    connection.commit()
+                print("Error:", error_message)  # Fehler in Console
+                # traceback.print_exc() #ausfuerhlicher Fehler
+                continue
+
+connection.commit()
+
+#---------KUNDENREZENSIONEN ENDE--------------
 
 
 connection.close()
