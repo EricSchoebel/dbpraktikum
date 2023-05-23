@@ -811,7 +811,7 @@ with connection.cursor() as cursor_dresden:
     for state in states:
         try:
             cursor_dresden.execute( #DRESDEN BESONDERHEIT: es stehen ja schon Zustaende von Leipzig drin, deshalb WHERE NOT EXISTS
-                "INSERT INTO Zustand (Beschreibung) VALUES (%s) WHERE NOT EXISTS (SELECT 1 FROM Zustand where Beschreibung = %s);",
+                "INSERT INTO Zustand (Beschreibung) SELECT %s WHERE NOT EXISTS (SELECT 1 FROM Zustand where Beschreibung = %s);",
                 (state, state)  # WICHTIG: du musst Tupel übergeben, auch bei nur einer Wertuebergabe, deshalb ","
             )
         except psycopg2.Error as error:  # Fehlernachricht in einer Tabelle loggen
