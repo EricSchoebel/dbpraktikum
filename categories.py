@@ -23,13 +23,11 @@ except psycopg2.Error as error:
 tree = ET.parse("backend\data\categories.xml")
 root = tree.getroot()
 
-
-
 #fuehrende Zahl zeigt an, ob es Haupt- oder Unterkategorie ist
 #hauptkategorien beginnen mit 1
 #unterkategorien beginnen mit 2
 
-id_zaehler = 0
+kategorie_id_zaehler = 0
 
 #rekursive Funktionsdefinition (für einen Hauptkategoriestrang)
 def grabeTiefer(oberkategorie, ober_id):
@@ -51,9 +49,9 @@ def grabeTiefer(oberkategorie, ober_id):
             )
 
         if unter.tag == 'category':
-            global id_zaehler
-            id_zaehler = id_zaehler + 1
-            new_id = int("2" + ( str(id_zaehler)) )
+            global kategorie_id_zaehler
+            kategorie_id_zaehler = kategorie_id_zaehler + 1
+            new_id = int("2" + (str(kategorie_id_zaehler)))
             # katgorie reinschreiben in tabelle kategorie
             # weitergraben
             cursor.execute(
@@ -73,9 +71,9 @@ connection.commit()
 #Einfügen
 with connection.cursor() as cursor:
     for hauptkategorie in root:
-        id_zaehler = id_zaehler + 1  #hier musst nicht "global setzen weil es keine Funktion ist
+        kategorie_id_zaehler = kategorie_id_zaehler + 1  #hier musst nicht "global setzen weil es keine Funktion ist
         #print(hauptkategorie.text)
-        actual_id = int("1"+str(id_zaehler))
+        actual_id = int("1" + str(kategorie_id_zaehler))
         #print(id_zaehler)
         cursor.execute(
              "INSERT INTO Kategorie (KatID, Kategoriename, Oberkategorie) VALUES (%s, %s, %s);",
