@@ -164,7 +164,7 @@ CREATE TABLE Kundenrezension (
 	Helpful INT,
 	Summary TEXT,
 	Content TEXT,
-	Reviewdate DATE,
+	Reviewdate DATE CHECK (Reviewdate > '1995-07-16'), #Amazon.com wurde am 16. Juli 1995 online gestellt.
 	PRIMARY KEY (KundenID, PID),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID),
 	FOREIGN KEY (PID) REFERENCES Produkt(PID)
