@@ -45,24 +45,7 @@ def berechne_fuzzy_matched(pruefstring, sqlstring, grenzwert, speziellercursor) 
     result_tuple = (fuzzy_matched, matched_name)
     return result_tuple
 
-# wie berechne_fuzzy_matched-Funktion, nur das getestet wird, ob die Strings identisch sind, wenn man Groß- und Kleinschreibung außer Acht laesst
-def berechne_lowercase_matched(pruefstring, sqlstring, speziellercursor) -> tuple[bool, str]:
-    # Daten zur Ueberpruefung aus DB holen
-    speziellercursor.execute(sqlstring)
-    namen = speziellercursor.fetchall()
 
-    lowercase_matched = False
-    matched_name = ""
-    #gegenchecke alle in Tabellenspalte bereits vorhandenen Namen
-    for name1 in namen:
-            if name1 != pruefstring:
-                aehnlichkeitsratio = berechne_aehnlichkeitsratio(str(name1[0]).lower(), pruefstring.lower())  # "[0]" weil es ja eig. Tupel ist
-                if aehnlichkeitsratio == 100:
-                    print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
-                    lowercase_matched = True
-                    matched_name = name1[0]
-    result_tuple = (lowercase_matched, matched_name)
-    return result_tuple
 
 #falls ein Fuzzy-Match gefunden wurde, wird dessen ID gebraucht
 def finde_ID_zu_matchend_name(sqlstring, speziellercursor):
@@ -299,8 +282,25 @@ with connection.cursor() as cursor_lpz:
                             (name,)
                         )
                         existing_kuenstler = cursor_lpz.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT kuenstlername FROM Kuenstler", 86, cursor_lpz)
+
                         if existing_kuenstler is not None:  #Fall: Kuenstlername gibt's schon in Kuenstler table
                             kuenstler_id = existing_kuenstler[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT kuenstlerid FROM Kuenstler where kuenstlername='" + fuzzy_tuple[1] + "'"
+                            kuenstler_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                                   (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  #Fall: Kuenstlernamen gibt es noch nicht in Kuenstler table, dann musst einen neuen Eintrag in Kuenstler Tabelle machen
                             kuenstler_id = kuenstler_id + 1
                             cursor_lpz.execute(
@@ -1129,8 +1129,26 @@ with connection.cursor() as cursor_dresden:
                             (name,)
                         )
                         existing_kuenstler = cursor_dresden.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT kuenstlername FROM Kuenstler", 86,
+                                                             cursor_dresden)
+
                         if existing_kuenstler is not None:  # Fall: Kuenstlername gibt's schon in Kuenstler table
                             kuenstler_id = existing_kuenstler[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT kuenstlerid FROM Kuenstler where kuenstlername='" + fuzzy_tuple[1] + "'"
+                            kuenstler_id = finde_ID_zu_matchend_name(sqlstring, cursor_dresden)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                               (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Kuenstlernamen gibt es noch nicht in Kuenstler table, dann musst einen neuen Eintrag in Kuenstler Tabelle machen
                             kuenstler_id = kuenstler_id + 1
                             cursor_dresden.execute(

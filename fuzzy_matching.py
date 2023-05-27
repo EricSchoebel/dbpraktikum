@@ -121,6 +121,7 @@ with connection.cursor() as fuzzy_cursor:
 
 
         '''
+        #---Abgesagt-- kannst einfach mit lower(spalte) in postgres bei bedarf einschraenken falls notwendig
         #Nur lower-Case-Prüfung
         #bei CD koennen minimal Unterschiede entscheiden sein.
         #Was man aber rausfiltern kann: was eig. komplett gleich ist, nur Groß- und Kleinschreibung unterschiedl.
@@ -138,6 +139,7 @@ with connection.cursor() as fuzzy_cursor:
         '''
 
         '''
+        #----Nope
         # Daten zur Ueberpruefung aus DB holen
         fuzzy_cursor.execute("SELECT format FROM dvd")
         namen = fuzzy_cursor.fetchall()
@@ -153,7 +155,7 @@ with connection.cursor() as fuzzy_cursor:
         '''
 
         '''
-        CHECK
+        #---CHECK
         fuzzy_cursor.execute("SELECT beteiligtenname FROM dvd_beteiligte")
         namen = fuzzy_cursor.fetchall()
 
@@ -166,6 +168,7 @@ with connection.cursor() as fuzzy_cursor:
         '''
 
         '''
+        #-----Nope
         fuzzy_cursor.execute("SELECT kategoriename FROM kategorie")
         namen = fuzzy_cursor.fetchall()
 
@@ -179,6 +182,7 @@ with connection.cursor() as fuzzy_cursor:
         '''
 
         '''
+        CHECK
         fuzzy_cursor.execute("SELECT kuenstlername FROM kuenstler")
         namen = fuzzy_cursor.fetchall()
 
@@ -192,6 +196,7 @@ with connection.cursor() as fuzzy_cursor:
         '''
 
         '''
+        #---Abgesagt-- ProduktIDs sind ja vorgegeben, wenn der Titel halt ähnlich ist, dann ist es halt so
         #Nur lower-Case-Prüfung
         fuzzy_cursor.execute("SELECT titel FROM Produkt")
         namen = fuzzy_cursor.fetchall()
@@ -206,6 +211,7 @@ with connection.cursor() as fuzzy_cursor:
         '''
 
         '''
+        #----Nope
         fuzzy_cursor.execute("SELECT titelname FROM titel")
         namen = fuzzy_cursor.fetchall()
 
@@ -250,6 +256,26 @@ with connection.cursor() as fuzzy_cursor:
 connection.commit()
 fuzzy_cursor.close()
 connection.close()
+
+#braucht es wohl gar nicht:
+# wie berechne_fuzzy_matched-Funktion, nur das getestet wird, ob die Strings identisch sind, wenn man Groß- und Kleinschreibung außer Acht laesst
+def berechne_lowercase_matched(pruefstring, sqlstring, speziellercursor) -> tuple[bool, str]:
+    # Daten zur Ueberpruefung aus DB holen
+    speziellercursor.execute(sqlstring)
+    namen = speziellercursor.fetchall()
+
+    lowercase_matched = False
+    matched_name = ""
+    #gegenchecke alle in Tabellenspalte bereits vorhandenen Namen
+    for name1 in namen:
+            if name1 != pruefstring:
+                aehnlichkeitsratio = berechne_aehnlichkeitsratio(str(name1[0]).lower(), pruefstring.lower())  # "[0]" weil es ja eig. Tupel ist
+                if aehnlichkeitsratio == 100:
+                    print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
+                    lowercase_matched = True
+                    matched_name = name1[0]
+    result_tuple = (lowercase_matched, matched_name)
+    return result_tuple
 
 """
 select * from autor INNER JOIN buch_autor 
