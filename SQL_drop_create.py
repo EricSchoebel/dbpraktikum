@@ -139,7 +139,8 @@ CREATE TABLE Angebot (
 );
 
 CREATE TABLE Kunde (
-	KundenID varchar(100) PRIMARY KEY
+	KundenID varchar(100) PRIMARY KEY,
+	Kundenname VARCHAR(100)
 );
 
 CREATE TABLE Konto (
