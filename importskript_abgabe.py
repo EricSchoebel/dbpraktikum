@@ -39,7 +39,7 @@ def berechne_fuzzy_matched(pruefstring, sqlstring, grenzwert, speziellercursor) 
             if name1 != pruefstring:
                 aehnlichkeitsratio = berechne_aehnlichkeitsratio(name1[0], pruefstring)  # "[0]" weil es ja eig. Tupel ist
                 if aehnlichkeitsratio > grenzwert and aehnlichkeitsratio<100:  # Grenzwert
-                    print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
+                    # print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
                     fuzzy_matched = True
                     matched_name = name1[0]
     result_tuple = (fuzzy_matched, matched_name)
