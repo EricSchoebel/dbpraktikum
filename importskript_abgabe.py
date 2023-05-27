@@ -74,21 +74,20 @@ print("Verarbeite Leipzig-Daten...")
 tree_two = ET.parse("backend\data\leipzig_transformed.xml")
 root_two = tree_two.getroot()
 
-#Tabellen leeren vor erneutem Einfügen
-
-with connection.cursor() as cleaner2: #nutzt vorgefertigte SQL-Skripte
+#Tabellen loeschen und neu erstellen (SQL-Befehle siehe "SQL_drop_create.py"
+with connection.cursor() as cleaner2:
     cleaner2.execute(sql_drop_tables)
     cleaner2.execute(sql_creates)
 connection.commit()
 
+#Eigens eingefuehrte Primaerschluessel, die von 0 hochgezaehlt werden
 kuenstler_id = 0
 autor_id = 0
 beteiligten_id = 0
 filialen_id = 0
 angebot_id_zaehler = 0
 
-
-#Allgemeine Struktur fuer ein Item: I) spezifische Infos rausziehen , II) direkt in jeweilige Tabellen reinschreiben
+#Informationen zur Leipziger Filiale einlesen
 with connection.cursor() as cursor_lpz:
 
     filialname_lpz = root_two.get('name')
@@ -96,14 +95,14 @@ with connection.cursor() as cursor_lpz:
     filial_lpz_PLZ = root_two.get('zip')
     fid_lpz = 1
 
-    #Filialen einfuegen
+    #Filiale einschreiben, wenn sie noch nicht in der Datenbank steht
     cursor_lpz.execute(
         "INSERT INTO Filiale (FID, Filialname) SELECT %s, %s "
         + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
             (fid_lpz, filialname_lpz, fid_lpz)
     )
 
-    #Anschrift einfuegen, spaeter auch analog fuer Dresden
+    #Anschrift einschreiben, wenn sie noch nicht in der Datenbank steht
     cursor_lpz.execute(
         "INSERT INTO Anschrift (FID, Strasse, Hausnummer, PLZ) SELECT %s, %s, %s, %s "
         + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
@@ -111,8 +110,7 @@ with connection.cursor() as cursor_lpz:
     )
     connection.commit()
 
-    #Checke alle Zustaende im gesamten Dokument fuer ZustandTabelle
-    # (in LepzigXML gibt es nur 'new')
+    #Alle in der XML vorkommenden Auspraegungen von "state" (-> alle moeglichen Zustaende) einlesen
     states = set()
     for x in root_two.iter():
         if x.tag == "price":
@@ -124,53 +122,56 @@ with connection.cursor() as cursor_lpz:
         try:
             cursor_lpz.execute(
                 "INSERT INTO Zustand (Beschreibung) VALUES (%s) ;",
-                (state,) #WICHTIG: du musst Tupel übergeben, auch bei nur einer Wertuebergabe, deshalb ","
+                (state,)
             )
             connection.commit()
-        except psycopg2.Error as error: # Fehlernachricht in einer Tabelle loggen
+        except psycopg2.Error as error: #Fehlernachricht in einer Tabelle loggen
             connection.rollback()
-            #error_message = str(error)  #kurze error message fuer Tabelle
-
-            # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
+            #ausfuerhliche Fehlermeldung fuer die Fehlertabelle einlesen
             traceback_string = str(traceback.format_exc())
+            # Anfang der Meldung, der fuer alle Fehler gleich ist, wird uebersprungen
             start_index = traceback_string.find("psycopg2.errors.") + len("psycopg2.errors.")
-            error_message = (traceback_string[start_index:]).lstrip().replace('\n', ' ')   #lstrip() entfernt Anfangsleerzeichen
+            #lstrip() entfernt Anfangsleerzeichen
+            error_message = (traceback_string[start_index:]).lstrip().replace('\n', ' ')
             error_message = "ERROR: " + error_message
-
+            #Fehlernachricht in die Datenbank schreiben
             with connection.cursor() as error_cursor:
                 error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))
                 connection.commit()
-            print("Error:", error_message)  # Fehler in Console
-            #traceback.print_exc() #ausfuerhlicher Fehler
+            #Ausgabe auf Konsole
+            print("Error:", error_message)
             continue
 
 
 
-
+    #alle Angebote der Filiale durchgehen
     for item in root_two:
         try:
-
             #die folgenden Infos sind bei Leipzig bei jeder Produktart gleich UND sind in Item-Tag zu finden
-            #print(item.attrib)
             produktart = item.get('pgroup')
             pid = item.get('asin')
 
             verkaufsrang = item.get('salesrank')
-            if len(verkaufsrang) == 0: #bei leerem String, muss ich fuer SQL eine NULLwert geben
+            # Wenn kein Verkaufsrang verfuegbar ist, dann Attribut auf Nullsetzen, um Einschreiben in die DB zu ermoeglichen
+            if len(verkaufsrang) == 0:
                 verkaufsrang = None
 
             image_url = item.get('picture')
-            if len(image_url)>0: #checkt ob da ueberhaupt sowas wie URL drin ist
+            # Ueberpruefung, ob eine URL zum Bild vorhanden ist
+            if len(image_url)>0:
                 response = requests.get(image_url) #downloadet das Bild via requests-Package
-                image_data = response.content # psycopg2.Binary(image_data)  dann später als value fuer die sql-query
+                image_data = response.content
+                # Speichern des Bildes als binary data fuer die DB
                 bild = psycopg2.Binary(image_data)
+            # Wenn keine URL vorhanden, dann "NULL" fuer die DB
             else:
                 bild = None
 
 
             if (produktart == 'Music') or (produktart == 'Book' and (str(pid)).startswith('B')):
 
-                # WARNING bzgl. (wahrscheinl.) Hoerbuechern, z.B.: PID "B000AMF7X8"
+                # die PID von Buechern faengt normalerweise nicht mit "B" an
+                # sollte dies der Fall sein, ist das ein Hinweis auf ein als "Buch" eingetragenes Hoerbuch und eine Warnung wird ausgegeben und geloggt
                 if ( produktart == 'Book' and (str(pid)).startswith('B') ):
                     eigene_fehlernachricht = 'WARNING: Speicherung erfolgt unter "CD", obwohl Produktart "Book" vorhanden.' \
                                              + ' Gründe wie PID sprechen für CD. Ggf. manuell überprüfen. Warning entstand bei: PID: ' + pid \
@@ -180,11 +181,12 @@ with connection.cursor() as cursor_lpz:
                     connection.commit()
                     print(eigene_fehlernachricht)
 
+
                 kuenstler_total = []
                 for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
                         titel = punkt.text
-                    elif punkt.tag == 'price': #das ist zwar auch bei jeder Produktart das gleiche Vorgehen
+                    elif punkt.tag == 'price':
                         multiplizierer = punkt.get('mult')
                         zustand = punkt.get('state')
                         currency = punkt.get('currency')
@@ -194,10 +196,11 @@ with connection.cursor() as cursor_lpz:
                         else:
                             europreis = None
 
-                        #Test, dass wirklich nur EUR-Preise
+                        # Ueberpruefung, ob ein valider Europreis vorliegt
                         if (currency != 'EUR') and (len(currency)>0):
                             print("currency ist nicht null und nicht Euro: "+currency)
                             #tritt bei Music zweimal auf, aber das es "EUREUR" ist, kann man davon ausgehen, dass Euro gemeint war
+                            #Warnung ausgeben und loggen
                             eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
@@ -207,28 +210,30 @@ with connection.cursor() as cursor_lpz:
 
 
                     elif punkt.tag == 'labels':
-                        labels = [label.get('name') for label in punkt.findall('label')] # ".get('')" weil es Attribut "name" in Untertag <label> ist
+                        labels = [label.get('name') for label in punkt.findall('label')] #alle Labelnamen einer CD sammeln
                         longest_label = max(labels, key=len, default=None) #nur laengstes Label (mit meisten Infos) erhalten und None-Handling
                     elif punkt.tag == 'musicspec':
                         erscheinungsdatum_roh = [releasedate.text for releasedate in punkt.findall('releasedate')]
                         if erscheinungsdatum_roh is None:
-                            erscheinungsdatum = None  # Or provide a default value or expression if needed
+                            erscheinungsdatum = None
                         else:
                             try:
                                 erscheinungsdatum = erscheinungsdatum_roh[0]
                             except:
                                 erscheinungsdatum = None
-                        #erscheinungsdatum = str(erscheinungsdatum_roh[0]) #ohenhin bloss einelementige Liste
-                        #print(erscheinungsdatum)
+                    #alle Tracks einlesen
                     elif punkt.tag == 'tracks':
-                        titles = [track.text for track in punkt.findall('title')] # ".text" weil es gibt immer Untertag <title> mit Text -> Titel
+                        titles = [track.text for track in punkt.findall('title')]
+                    # alle Kuenstler einlesen, in der Kuenstlerliste abspeichern
                     elif punkt.tag == 'artists':
                         artists = [artist.get('name') for artist in punkt.findall('artist')]
                         kuenstler_total.extend(artists)
+                    #alle "Creators" einlesen, in der Kuenstlerliste abspeichern
                     elif punkt.tag == 'creators':
                         creators = [creator.get('name') for creator in punkt.findall('creator')]
                         kuenstler_total.extend(creators)
 
+                    #alle aehnlichen Produkte einlesen
                     elif punkt.tag == 'similars':
                         # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
                         aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
@@ -238,7 +243,7 @@ with connection.cursor() as cursor_lpz:
                 cursor_lpz.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating wird über Trigger errechnet
                 )
                 connection.commit()
 
@@ -250,23 +255,17 @@ with connection.cursor() as cursor_lpz:
                 )
                 connection.commit()
 
-                # Retrieve the maximum kuenstler_id from the Kuenstler table
+                # hoechste bis jetzt verwendete KuenstlerID abrufen
                 cursor_lpz.execute("SELECT MAX(KuenstlerID) FROM Kuenstler;")
                 max_kuenstler_id = cursor_lpz.fetchone()[0]
-                #print("max_kuenstlerID:")
-                #print(max_kuenstler_id)
 
 
                 #kuenstler sind entgegen der reinen Uebersetzung sowohl artists als auch creators
-                #Weitere Herausforderung war: wenn es den Kuenstlernamen schon gibt, dann keinen neuen Eintrag in Kuenstlertabelle machen,
-                #sondern mit bestehender KuenstlerID die Verbindung in CD_Kuenstler machen
-                # (hochzaehllogik musste man aufpassen)
                 for kuenstlername in kuenstler_total:
                     names = kuenstlername.split("/") #weil manchmal in einem kuenstlernamen eig. mehrere mit "/" separiert reingechrieben
 
                     for name in names:
-                        #print(name)
-                        # Hole maximum kuenstler_id von KuenstlerTabelle
+                        # hoechste bis jetzt verwendete KuenstlerID abrufen
                         name = name.lstrip().rstrip() #fuehrende und endende Blanks loeschen fuer semantische Gleichheit
                         cursor_lpz.execute("SELECT MAX(KuenstlerID) FROM Kuenstler;")
                         max_kuenstler_id = cursor_lpz.fetchone()[0]
@@ -302,7 +301,7 @@ with connection.cursor() as cursor_lpz:
                             connection.commit()
                             print(eigene_fehlernachricht)
 
-                        else:  #Fall: Kuenstlernamen gibt es noch nicht in Kuenstler table, dann musst einen neuen Eintrag in Kuenstler Tabelle machen
+                        else:  #Fall: Kuenstlernamen gibt es noch nicht in Kuenstler table, dann muss ein neuer Eintrag in Kuenstler Tabelle angelegt werden
                             kuenstler_id = kuenstler_id + 1
                             cursor_lpz.execute(
                                 "INSERT INTO Kuenstler (KuenstlerID, Kuenstlername) VALUES (%s, %s)",
@@ -331,7 +330,7 @@ with connection.cursor() as cursor_lpz:
                 for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
                         titel = punkt.text
-                    elif punkt.tag == 'price': #das ist zwar auch bei jeder Produktart das gleiche Vorgehen
+                    elif punkt.tag == 'price':
                         multiplizierer = punkt.get('mult')
                         zustand = punkt.get('state')
                         currency = punkt.get('currency')
