@@ -98,10 +98,12 @@ with connection.cursor() as fuzzy_cursor:
 
     try:
 
-        #print(berechne_fuzzy_matched("Andreas Frhlich","SELECT autorname FROM Autor",85))
+        print(berechne_fuzzy_matched("Andreas Frhlich","SELECT autorname FROM Autor",85))
 
-        print(berechne_lowercase_matched("I'll Be Home for Christmas", "SELECT titel FROM Produkt"))
+        #print(berechne_lowercase_matched("I'll Be Home for Christmas", "SELECT titel FROM Produkt"))
+
         '''
+        #CHECK
         #Daten zur Ueberpruefung aus DB holen
         fuzzy_cursor.execute("SELECT autorname FROM Autor")
         namen = fuzzy_cursor.fetchall()
@@ -119,6 +121,7 @@ with connection.cursor() as fuzzy_cursor:
 
 
         '''
+        #Nur lower-Case-Prüfung
         #bei CD koennen minimal Unterschiede entscheiden sein.
         #Was man aber rausfiltern kann: was eig. komplett gleich ist, nur Groß- und Kleinschreibung unterschiedl.
         # -> Nur lower-Case-Prüfung
@@ -150,6 +153,7 @@ with connection.cursor() as fuzzy_cursor:
         '''
 
         '''
+        CHECK
         fuzzy_cursor.execute("SELECT beteiligtenname FROM dvd_beteiligte")
         namen = fuzzy_cursor.fetchall()
 

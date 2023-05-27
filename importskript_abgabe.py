@@ -10,6 +10,65 @@ from SQL_drop_create import sql_drop_tables, sql_creates
 import decimal
 import csv
 import html
+from thefuzz import fuzz #Fuzzy-Suche, basiert auf Levenshtein-Distanz / Editierdistanz
+
+#Fuzzy-Matching
+#Beispiel: in Daten gab es die Autoren "Andreas Fröhlich" und "Andreas Frhlich", wahrscheinlich diesselbe Person
+#s1 = "Andreas Fröhlich"
+#s2 = "Andreas Frhlich"
+#print(fuzz.ratio(s1, s2)) #ergibt ratio (eine Art Aehnlichkeitsmaß) von 97  (100 waere exakt gleicher String)
+
+# berechnet aehnlichkeitsratio (eine Art Aehnlichkeitsmaß, 100 waere exakt gleicher String)
+def berechne_aehnlichkeitsratio(name1, name2):
+    return fuzz.ratio(name1, name2)
+
+#Input: pruefstring = Name oder aehnliches der auf fuzzy-Vorhandensein in DB ueberpueft werden soll
+#       sqlstring = Abfrage zur relevanter Spalte
+#       aehnlichkeitsratio-Grenzwert, wie gleich es sein muss um als fuzzy_matached zu gelten.
+#               Grenzwert für jeweilige Tabelle und Attrbut durch Ausprobieren herausgefunden
+#Rueckgabetuple gibt an ob fuzzy_matched und wenn True mit welchem Namen
+def berechne_fuzzy_matched(pruefstring, sqlstring, grenzwert, speziellercursor) -> tuple[bool, str]:
+    # Daten zur Ueberpruefung aus DB holen
+    speziellercursor.execute(sqlstring)
+    namen = speziellercursor.fetchall()
+
+    fuzzy_matched = False
+    matched_name = ""
+    #gegenchecke alle in Tabellenspalte bereits vorhandenen Namen
+    for name1 in namen:
+            if name1 != pruefstring:
+                aehnlichkeitsratio = berechne_aehnlichkeitsratio(name1[0], pruefstring)  # "[0]" weil es ja eig. Tupel ist
+                if aehnlichkeitsratio > grenzwert and aehnlichkeitsratio<100:  # Grenzwert
+                    print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
+                    fuzzy_matched = True
+                    matched_name = name1[0]
+    result_tuple = (fuzzy_matched, matched_name)
+    return result_tuple
+
+# wie berechne_fuzzy_matched-Funktion, nur das getestet wird, ob die Strings identisch sind, wenn man Groß- und Kleinschreibung außer Acht laesst
+def berechne_lowercase_matched(pruefstring, sqlstring, speziellercursor) -> tuple[bool, str]:
+    # Daten zur Ueberpruefung aus DB holen
+    speziellercursor.execute(sqlstring)
+    namen = speziellercursor.fetchall()
+
+    lowercase_matched = False
+    matched_name = ""
+    #gegenchecke alle in Tabellenspalte bereits vorhandenen Namen
+    for name1 in namen:
+            if name1 != pruefstring:
+                aehnlichkeitsratio = berechne_aehnlichkeitsratio(str(name1[0]).lower(), pruefstring.lower())  # "[0]" weil es ja eig. Tupel ist
+                if aehnlichkeitsratio == 100:
+                    print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
+                    lowercase_matched = True
+                    matched_name = name1[0]
+    result_tuple = (lowercase_matched, matched_name)
+    return result_tuple
+
+#falls ein Fuzzy-Match gefunden wurde, wird dessen ID gebraucht
+def finde_ID_zu_matchend_name(sqlstring, speziellercursor):
+    speziellercursor.execute(sqlstring)
+    ID_tupel = speziellercursor.fetchone()
+    return ID_tupel[0]
 
 
 try:
@@ -44,6 +103,7 @@ autor_id = 0
 beteiligten_id = 0
 filialen_id = 0
 angebot_id_zaehler = 0
+
 
 #Allgemeine Struktur fuer ein Item: I) spezifische Infos rausziehen , II) direkt in jeweilige Tabellen reinschreiben
 with connection.cursor() as cursor_lpz:
@@ -398,8 +458,25 @@ with connection.cursor() as cursor_lpz:
                             (name,)
                         )
                         existing_autor = cursor_lpz.fetchone()
+
+                        #--Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT autorname FROM Autor", 85, cursor_lpz)
+
                         if existing_autor is not None:  # Fall: Autorname gibt's schon in Autor table
                             autor_id = existing_autor[0]
+
+                        #--Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT autorid FROM Autor where autorname='" + fuzzy_tuple[1] + "'"
+                            autor_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                               (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Autorennamen gibt es noch nicht in Autor table, dann musst einen neuen Eintrag in Autor Tabelle machen
                             autor_id = autor_id + 1
                             cursor_lpz.execute(
@@ -526,8 +603,25 @@ with connection.cursor() as cursor_lpz:
                             (name,)
                         )
                         existing_beteiligter = cursor_lpz.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90, cursor_lpz)
+
                         if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
                             beteiligten_id = existing_beteiligter[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + fuzzy_tuple[1] + "'"
+                            beteiligten_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                                   (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_lpz.execute(
@@ -566,8 +660,27 @@ with connection.cursor() as cursor_lpz:
                             (name,)
                         )
                         existing_beteiligter = cursor_lpz.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90,
+                                                             cursor_lpz)
+
                         if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
                             beteiligten_id = existing_beteiligter[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + \
+                                        fuzzy_tuple[1] + "'"
+                            beteiligten_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                               (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_lpz.execute(
@@ -606,8 +719,27 @@ with connection.cursor() as cursor_lpz:
                             (name,)
                         )
                         existing_beteiligter = cursor_lpz.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90,
+                                                             cursor_lpz)
+
                         if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
                             beteiligten_id = existing_beteiligter[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + \
+                                        fuzzy_tuple[1] + "'"
+                            beteiligten_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                               (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_lpz.execute(
@@ -749,7 +881,7 @@ with connection.cursor() as cursor_lpz:
 # Commit the changes and close the connection
 connection.commit()
 
-cursor_lpz.close() #Leipzig cursor schliessen um ihn nicht aus Versehen zu verwenden
+#cursor_lpz.close() #Leipzig cursor schliessen um ihn nicht aus Versehen zu verwenden
 
 #----------LEIPZIG ENDE--------------------
 
@@ -1184,8 +1316,25 @@ with connection.cursor() as cursor_dresden:
                             (name,)
                         )
                         existing_autor = cursor_dresden.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT autorname FROM Autor", 85, cursor_dresden)
+
                         if existing_autor is not None:  # Fall: Autorname gibt's schon in Autor table
                             autor_id = existing_autor[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT autorid FROM Autor where autorname='" + fuzzy_tuple[1] + "'"
+                            autor_id = finde_ID_zu_matchend_name(sqlstring, cursor_dresden)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                               (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Autorennamen gibt es noch nicht in Autor table, dann musst einen neuen Eintrag in Autor Tabelle machen
                             autor_id = autor_id + 1
                             cursor_dresden.execute(
@@ -1340,8 +1489,27 @@ with connection.cursor() as cursor_dresden:
                             (name,)
                         )
                         existing_beteiligter = cursor_dresden.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90,
+                                                             cursor_dresden)
+
                         if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
                             beteiligten_id = existing_beteiligter[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + \
+                                        fuzzy_tuple[1] + "'"
+                            beteiligten_id = finde_ID_zu_matchend_name(sqlstring, cursor_dresden)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                               (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_dresden.execute(
@@ -1380,8 +1548,27 @@ with connection.cursor() as cursor_dresden:
                             (name,)
                         )
                         existing_beteiligter = cursor_dresden.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90,
+                                                             cursor_dresden)
+
                         if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
                             beteiligten_id = existing_beteiligter[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + \
+                                        fuzzy_tuple[1] + "'"
+                            beteiligten_id = finde_ID_zu_matchend_name(sqlstring, cursor_dresden)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                                   (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_dresden.execute(
@@ -1420,8 +1607,27 @@ with connection.cursor() as cursor_dresden:
                             (name,)
                         )
                         existing_beteiligter = cursor_dresden.fetchone()
+
+                        # --Fuzzy-Matching:
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90,
+                                                             cursor_dresden)
+
                         if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
                             beteiligten_id = existing_beteiligter[0]
+
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        elif fuzzy_tuple[0]:
+                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + \
+                                        fuzzy_tuple[1] + "'"
+                            beteiligten_id = finde_ID_zu_matchend_name(sqlstring, cursor_dresden)
+                            eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
+                                                     + ' Ähnlichkeit zwischen ' + name \
+                                                     + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
+                            cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                                   (eigene_fehlernachricht,))
+                            connection.commit()
+                            print(eigene_fehlernachricht)
+
                         else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_dresden.execute(
