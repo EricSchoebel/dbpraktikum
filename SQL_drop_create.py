@@ -16,6 +16,9 @@ CREATE TABLE Produkt (
   Verkaufsrang INT,
   Bild BYTEA
 );
+CREATE INDEX verkaufsrang_index ON Produkt(verkaufsrang); /*schnelleres Abgleichen und Sortieren*/
+/*kein Index auf Rating wegen häufiger Updates (sonst schlechtere performance)*/
+
 
 CREATE TABLE Buch (
   PID VARCHAR(20) PRIMARY KEY,
@@ -25,6 +28,8 @@ CREATE TABLE Buch (
   Verlag VARCHAR(255),
   FOREIGN KEY (PID) REFERENCES Produkt(PID)
 );
+CREATE INDEX seitenzahl_index ON Buch(seitenzahl); /*schnelleres Abgleichen und Sortieren*/
+CREATE INDEX buch_rd_index ON Buch(erscheinungsdatum); /*schnelleres Abgleichen und Sortieren*/
 
 CREATE TABLE DVD (
   PID VARCHAR(20) PRIMARY KEY,
@@ -33,6 +38,7 @@ CREATE TABLE DVD (
   Regioncode VARCHAR(255),
   FOREIGN KEY (PID) REFERENCES Produkt(PID)
 );
+CREATE INDEX laufzeit_index ON DVD(laufzeit); /*schnelleres Abgleichen und Sortieren*/
 
 CREATE TABLE CD (
   PID VARCHAR(20) PRIMARY KEY,
@@ -41,11 +47,13 @@ CREATE TABLE CD (
   FOREIGN KEY (PID) REFERENCES Produkt(PID),
   CONSTRAINT CD_Kuenstler_PID_fk FOREIGN KEY (PID) REFERENCES Produkt(PID)
 );
+CREATE INDEX CD_rd_index ON CD(erscheinungsdatum); /*schnelleres Abgleichen und Sortieren*/
 
 CREATE TABLE Autor (
   AutorID INT PRIMARY KEY,
   Autorname VARCHAR(255)
 );
+CREATE INDEX autorname_index ON Autor(Autorname); /*schnelleres Abgleichen und Selektieren*/
 
 
 CREATE TABLE Buch_Autor (
@@ -74,6 +82,7 @@ CREATE TABLE Kuenstler (
   KuenstlerID INT PRIMARY KEY,
   Kuenstlername VARCHAR(255) NOT NULL
 );
+CREATE INDEX kuenstlername_index ON kuenstler(kuenstlername); /*schnelleres Abgleichen und Selektieren*/
 
 CREATE TABLE CD_Kuenstler (
   PID VARCHAR(20),
@@ -97,6 +106,7 @@ CREATE TABLE Kategorie (
   Oberkategorie INT,
   FOREIGN KEY (Oberkategorie) REFERENCES Kategorie(KatID)
 );
+/* Index auf Oberkategorie ? -> viele Dopplungen, aber viel Filtern*/ 
 
 CREATE TABLE Produkt_Kategorie (
   KatID INT,
@@ -110,6 +120,7 @@ CREATE TABLE Filiale (
   FID INT PRIMARY KEY,
   Filialname VARCHAR(255)
 );
+CREATE INDEX filialname_index ON Filiale(Filialname); /*schnelleres Abgleichen und Selektieren*/
 
 CREATE TABLE Anschrift (
   FID INT PRIMARY KEY,
@@ -137,21 +148,24 @@ CREATE TABLE Angebot (
 	FOREIGN KEY (Zustandsnummer) REFERENCES Zustand(Zustandsnummer),
 	CONSTRAINT unique_offer_constraint UNIQUE (PID, FID, Preis, Zustandsnummer)
 );
+CREATE INDEX preis_index ON Angebot(Preis); /*schnelleres Abgleichen und Sortieren*/
+CREATE INDEX pid_index ON Angebot(PID); /*schnellere JOINs*/
+CREATE INDEX fid_index ON Angebot(FID); /*schnellere JOINs*/
 
 CREATE TABLE Kunde (
-	KundenID varchar(100) PRIMARY KEY,
+	KundenID INT PRIMARY KEY,
 	Kundenname VARCHAR(100)
 );
 
 CREATE TABLE Konto (
-    	KundenID varchar(100),
+    	KundenID INT,
 Kontonummer INT,
     	PRIMARY KEY(KundenID, Kontonummer),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID)
 );
 
 CREATE TABLE Lieferadresse (
-	KundenID varchar(100),
+	KundenID INT,
 	Strasse VARCHAR(100),
 	Hausnummer VARCHAR(10),
 	PLZ VARCHAR(10),
@@ -159,17 +173,20 @@ CREATE TABLE Lieferadresse (
 );
 
 CREATE TABLE Kundenrezension (
-	KundenID varchar(100),
+	KundenID INT,
 	PID VARCHAR(20),
 	Punkte INT CHECK (Punkte BETWEEN 1 AND 5),
 	Helpful INT,
 	Summary TEXT,
 	Content TEXT,
-	Reviewdate DATE CHECK (Reviewdate > '1995-07-16'),
+	Reviewdate DATE,
 	PRIMARY KEY (KundenID, PID),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID),
 	FOREIGN KEY (PID) REFERENCES Produkt(PID)
 );
+CREATE INDEX rezension_rd_index ON Kundenrezension(Reviewdate); /*schnelles Abgleichen und Sortieren*/
+CREATE INDEX helpful_index ON Kundenrezension(Helpful); /*schnelles Abgleichen und Sortieren*/
+CREATE INDEX punkte_index ON Kundenrezension(Punkte); /*schnelles Abgleichen und Sortieren*/
 
 CREATE OR REPLACE FUNCTION UpdateRatingFunction()
 RETURNS TRIGGER AS $$
@@ -189,7 +206,7 @@ EXECUTE FUNCTION UpdateRatingFunction();
 
 CREATE TABLE Kauf (
 	AngebotsID INT,
-	KundenID varchar(100),
+	KundenID INT,
 	Menge INT,
 	Zeitpunkt TIMESTAMP,
 	PRIMARY KEY (KundenID, AngebotsID, Zeitpunkt),
@@ -215,6 +232,7 @@ CREATE TABLE Aehnlichkeit (
 	FOREIGN KEY (PID2) REFERENCES Produkt(PID),
 	CHECK (compare_strings_less_than(PID1, PID2))
 );
+
 
 
 
