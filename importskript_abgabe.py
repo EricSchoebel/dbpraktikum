@@ -1,32 +1,34 @@
-#Vorbemerkung: postgres-DockerContainer must be up
+# Vorbemerkung: postgres-DockerContainer must be up
 
 # in terminal: pip install psycopg2
-import psycopg2 #Psycopg is the most popular PostgreSQL database adapter for Python
+import psycopg2  # Psycopg is the most popular PostgreSQL database adapter for Python
 import xml.etree.ElementTree as ET
-import requests # NEU
-import traceback # NEU
-#import os
+import requests  # NEU
+import traceback  # NEU
+# import os
 from SQL_drop_create import sql_drop_tables, sql_creates
 import decimal
 import csv
 import html
-from thefuzz import fuzz #Fuzzy-Suche, basiert auf Levenshtein-Distanz / Editierdistanz
+from thefuzz import fuzz  # Fuzzy-Suche, basiert auf Levenshtein-Distanz / Editierdistanz
 
-#Fuzzy-Matching
-#Beispiel: in Daten gab es die Autoren "Andreas Fröhlich" und "Andreas Frhlich", wahrscheinlich diesselbe Person
-#s1 = "Andreas Fröhlich"
-#s2 = "Andreas Frhlich"
-#print(fuzz.ratio(s1, s2)) #ergibt ratio (eine Art Aehnlichkeitsmaß) von 97  (100 waere exakt gleicher String)
+
+# Fuzzy-Matching
+# Beispiel: in Daten gab es die Autoren "Andreas Fröhlich" und "Andreas Frhlich", wahrscheinlich diesselbe Person
+# s1 = "Andreas Fröhlich"
+# s2 = "Andreas Frhlich"
+# print(fuzz.ratio(s1, s2)) #ergibt ratio (eine Art Aehnlichkeitsmaß) von 97  (100 waere exakt gleicher String)
 
 # berechnet aehnlichkeitsratio (eine Art Aehnlichkeitsmaß, 100 waere exakt gleicher String)
 def berechne_aehnlichkeitsratio(name1, name2):
     return fuzz.ratio(name1, name2)
 
-#Input: pruefstring = Name oder aehnliches der auf fuzzy-Vorhandensein in DB ueberpueft werden soll
+
+# Input: pruefstring = Name oder aehnliches der auf fuzzy-Vorhandensein in DB ueberpueft werden soll
 #       sqlstring = Abfrage zur relevanter Spalte
 #       aehnlichkeitsratio-Grenzwert, wie gleich es sein muss um als fuzzy_matached zu gelten.
 #               Grenzwert für jeweilige Tabelle und Attrbut durch Ausprobieren herausgefunden
-#Rueckgabetuple gibt an ob fuzzy_matched und wenn True mit welchem Namen
+# Rueckgabetuple gibt an ob fuzzy_matched und wenn True mit welchem Namen
 def berechne_fuzzy_matched(pruefstring, sqlstring, grenzwert, speziellercursor) -> tuple[bool, str]:
     # Daten zur Ueberpruefung aus DB holen
     speziellercursor.execute(sqlstring)
@@ -34,20 +36,19 @@ def berechne_fuzzy_matched(pruefstring, sqlstring, grenzwert, speziellercursor) 
 
     fuzzy_matched = False
     matched_name = ""
-    #gegenchecke alle in Tabellenspalte bereits vorhandenen Namen
+    # gegenchecke alle in Tabellenspalte bereits vorhandenen Namen
     for name1 in namen:
-            if name1 != pruefstring:
-                aehnlichkeitsratio = berechne_aehnlichkeitsratio(name1[0], pruefstring)  # "[0]" weil es ja eig. Tupel ist
-                if aehnlichkeitsratio > grenzwert and aehnlichkeitsratio<100:  # Grenzwert
-                    # print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
-                    fuzzy_matched = True
-                    matched_name = name1[0]
+        if name1 != pruefstring:
+            aehnlichkeitsratio = berechne_aehnlichkeitsratio(name1[0], pruefstring)  # "[0]" weil es ja eig. Tupel ist
+            if aehnlichkeitsratio > grenzwert and aehnlichkeitsratio < 100:  # Grenzwert
+                # print(f"Aehnlichkeit zwischen {name1[0]} und {pruefstring}: {aehnlichkeitsratio}%")
+                fuzzy_matched = True
+                matched_name = name1[0]
     result_tuple = (fuzzy_matched, matched_name)
     return result_tuple
 
 
-
-#falls ein Fuzzy-Match gefunden wurde, wird dessen ID gebraucht
+# falls ein Fuzzy-Match gefunden wurde, wird dessen ID gebraucht
 def finde_ID_zu_matchend_name(sqlstring, speziellercursor):
     speziellercursor.execute(sqlstring)
     ID_tupel = speziellercursor.fetchone()
@@ -57,7 +58,7 @@ def finde_ID_zu_matchend_name(sqlstring, speziellercursor):
 try:
     connection = psycopg2.connect(
         host="localhost",
-        port="6432", # hier 6432 weil ich die Portbindung geändert hatte
+        port="6432",  # hier 6432 weil ich die Portbindung geändert hatte
         database="dbprak_postgres",
         user="dbprak_postgres",
         password="dbprak_postgres"
@@ -66,7 +67,7 @@ try:
 except psycopg2.Error as error:
     print("Error connecting to PostgreSQL:", error)
 
-#----------LEIPZIG ANFANG--------------------
+# ----------LEIPZIG ANFANG--------------------
 
 print("Verarbeite Leipzig-Daten...")
 
@@ -74,35 +75,34 @@ print("Verarbeite Leipzig-Daten...")
 tree_two = ET.parse("backend\data\leipzig_transformed.xml")
 root_two = tree_two.getroot()
 
-#Tabellen loeschen und neu erstellen (SQL-Befehle siehe "SQL_drop_create.py")
+# Tabellen loeschen und neu erstellen (SQL-Befehle siehe "SQL_drop_create.py")
 with connection.cursor() as cleaner2:
     cleaner2.execute(sql_drop_tables)
     cleaner2.execute(sql_creates)
 connection.commit()
 
-#Eigens eingefuehrte Primaerschluessel, die von 0 hochgezaehlt werden
+# Eigens eingefuehrte Primaerschluessel, die von 0 hochgezaehlt werden
 kuenstler_id = 0
 autor_id = 0
 beteiligten_id = 0
 filialen_id = 0
 angebot_id_zaehler = 0
 
-#Informationen zur Leipziger Filiale einlesen
+# Informationen zur Leipziger Filiale einlesen
 with connection.cursor() as cursor_lpz:
-
     filialname_lpz = root_two.get('name')
     filial_lpz_strasse = root_two.get('street')
     filial_lpz_PLZ = root_two.get('zip')
     fid_lpz = 1
 
-    #Filiale einschreiben, wenn sie noch nicht in der Datenbank steht
+    # Filiale einschreiben, wenn sie noch nicht in der Datenbank steht
     cursor_lpz.execute(
         "INSERT INTO Filiale (FID, Filialname) SELECT %s, %s "
         + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
-            (fid_lpz, filialname_lpz, fid_lpz)
+        (fid_lpz, filialname_lpz, fid_lpz)
     )
 
-    #Anschrift einschreiben, wenn sie noch nicht in der Datenbank steht
+    # Anschrift einschreiben, wenn sie noch nicht in der Datenbank steht
     cursor_lpz.execute(
         "INSERT INTO Anschrift (FID, Strasse, Hausnummer, PLZ) SELECT %s, %s, %s, %s "
         + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
@@ -110,14 +110,14 @@ with connection.cursor() as cursor_lpz:
     )
     connection.commit()
 
-    #Alle in der XML vorkommenden Auspraegungen von "state" (-> alle moeglichen Zustaende) einlesen
+    # Alle in der XML vorkommenden Auspraegungen von "state" (-> alle moeglichen Zustaende) einlesen
     states = set()
     for x in root_two.iter():
         if x.tag == "price":
             state = x.get("state")
             states.add(state)
 
-    #ZustaendeTabelle befuellen
+    # ZustaendeTabelle befuellen
     for state in states:
         try:
             cursor_lpz.execute(
@@ -125,29 +125,27 @@ with connection.cursor() as cursor_lpz:
                 (state,)
             )
             connection.commit()
-        except psycopg2.Error as error: #Fehlernachricht in einer Tabelle loggen
+        except psycopg2.Error as error:  # Fehlernachricht in einer Tabelle loggen
             connection.rollback()
-            #ausfuerhliche Fehlermeldung fuer die Fehlertabelle einlesen
+            # ausfuerhliche Fehlermeldung fuer die Fehlertabelle einlesen
             traceback_string = str(traceback.format_exc())
             # Anfang der Meldung, der fuer alle Fehler gleich ist, wird uebersprungen
             start_index = traceback_string.find("psycopg2.errors.") + len("psycopg2.errors.")
-            #lstrip() entfernt Anfangsleerzeichen
+            # lstrip() entfernt Anfangsleerzeichen
             error_message = (traceback_string[start_index:]).lstrip().replace('\n', ' ')
             error_message = "ERROR: " + error_message
-            #Fehlernachricht in die Datenbank schreiben
+            # Fehlernachricht in die Datenbank schreiben
             with connection.cursor() as error_cursor:
                 error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))
                 connection.commit()
-            #Ausgabe auf Konsole
+            # Ausgabe auf Konsole
             print("Error:", error_message)
             continue
 
-
-
-    #alle Angebote der Filiale durchgehen
+    # alle Angebote der Filiale durchgehen
     for item in root_two:
         try:
-            #die folgenden Infos sind bei Leipzig bei jeder Produktart gleich UND sind in Item-Tag zu finden
+            # die folgenden Infos sind bei Leipzig bei jeder Produktart gleich UND sind in Item-Tag zu finden
             produktart = item.get('pgroup')
             pid = item.get('asin')
 
@@ -158,8 +156,8 @@ with connection.cursor() as cursor_lpz:
 
             image_url = item.get('picture')
             # Ueberpruefung, ob eine URL zum Bild vorhanden ist
-            if len(image_url)>0:
-                response = requests.get(image_url) #downloadet das Bild via requests-Package
+            if len(image_url) > 0:
+                response = requests.get(image_url)  # downloadet das Bild via requests-Package
                 image_data = response.content
                 # Speichern des Bildes als binary data fuer die DB
                 bild = psycopg2.Binary(image_data)
@@ -172,7 +170,7 @@ with connection.cursor() as cursor_lpz:
 
                 # die PID von Buechern faengt normalerweise nicht mit "B" an
                 # sollte dies der Fall sein, ist das ein Hinweis auf ein als "Buch" eingetragenes Hoerbuch und eine Warnung wird ausgegeben und geloggt
-                if ( produktart == 'Book' and (str(pid)).startswith('B') ):
+                if (produktart == 'Book' and (str(pid)).startswith('B')):
                     eigene_fehlernachricht = 'WARNING: Speicherung erfolgt unter "CD", obwohl Produktart "Book" vorhanden.' \
                                              + ' Gründe wie PID sprechen für CD. Ggf. manuell überprüfen. Warning entstand bei: PID: ' + pid \
                                              + ', Produktart: ' + produktart
@@ -181,9 +179,8 @@ with connection.cursor() as cursor_lpz:
                     connection.commit()
                     print(eigene_fehlernachricht)
 
-
                 kuenstler_total = []
-                for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
+                for punkt in item:  # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
                         titel = punkt.text
                     elif punkt.tag == 'price':
@@ -197,20 +194,22 @@ with connection.cursor() as cursor_lpz:
                             europreis = None
 
                         # Ueberpruefung, ob ein valider Europreis vorliegt
-                        if (currency != 'EUR') and (len(currency)>0):
-                            print("currency ist nicht null und nicht Euro: "+currency)
-                            #Warnung ausgeben und loggen
+                        if (currency != 'EUR') and (len(currency) > 0):
+                            print("currency ist nicht null und nicht Euro: " + currency)
+                            # Warnung ausgeben und loggen
                             eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                             cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                                 (eigene_fehlernachricht,))
+                                               (eigene_fehlernachricht,))
                             connection.commit()
 
 
                     elif punkt.tag == 'labels':
-                        labels = [label.get('name') for label in punkt.findall('label')] #alle Labelnamen einer CD sammeln
-                        longest_label = max(labels, key=len, default=None) #nur laengstes Label (mit meisten Infos) erhalten und None-Handling
+                        labels = [label.get('name') for label in
+                                  punkt.findall('label')]  # alle Labelnamen einer CD sammeln
+                        longest_label = max(labels, key=len,
+                                            default=None)  # nur laengstes Label (mit meisten Infos) erhalten und None-Handling
                     elif punkt.tag == 'musicspec':
                         erscheinungsdatum_roh = [releasedate.text for releasedate in punkt.findall('releasedate')]
                         if erscheinungsdatum_roh is None:
@@ -220,25 +219,26 @@ with connection.cursor() as cursor_lpz:
                                 erscheinungsdatum = erscheinungsdatum_roh[0]
                             except:
                                 erscheinungsdatum = None
-                    #alle Tracks einlesen
+                    # alle Tracks einlesen
                     elif punkt.tag == 'tracks':
                         titles = [track.text for track in punkt.findall('title')]
                     # alle Kuenstler einlesen, in der Kuenstlerliste abspeichern
                     elif punkt.tag == 'artists':
                         artists = [artist.get('name') for artist in punkt.findall('artist')]
                         kuenstler_total.extend(artists)
-                    #alle "Creators" einlesen, in der Kuenstlerliste abspeichern
+                    # alle "Creators" einlesen, in der Kuenstlerliste abspeichern
                     elif punkt.tag == 'creators':
                         creators = [creator.get('name') for creator in punkt.findall('creator')]
                         kuenstler_total.extend(creators)
 
-                    #alle aehnlichen Produkte einlesen
+                    # alle aehnlichen Produkte einlesen
                     elif punkt.tag == 'similars':
                         # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
-                        aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
-                                            for sim_product in punkt.findall('sim_product')]
+                        aehnliche_produkte_tupelliste = [(sim_product.find('asin').text, sim_product.find('title').text)
+                                                         # Liste von Tupeln
+                                                         for sim_product in punkt.findall('sim_product')]
 
-                #Einschreiben in Tabellen
+                # Einschreiben in Tabellen
                 cursor_lpz.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
@@ -248,7 +248,7 @@ with connection.cursor() as cursor_lpz:
 
                 cursor_lpz.execute(
                     "INSERT INTO CD (PID, Label, Erscheinungsdatum) SELECT %s, %s,"
-                    +"CASE WHEN %s IS NULL THEN NULL ELSE to_date(%s, 'YYYY-MM-DD') END "
+                    + "CASE WHEN %s IS NULL THEN NULL ELSE to_date(%s, 'YYYY-MM-DD') END "
                     + "WHERE NOT EXISTS (SELECT 1 FROM CD where PID = %s);",
                     (pid, longest_label, erscheinungsdatum, erscheinungsdatum, pid)
                 )
@@ -258,15 +258,14 @@ with connection.cursor() as cursor_lpz:
                 cursor_lpz.execute("SELECT MAX(KuenstlerID) FROM Kuenstler;")
                 max_kuenstler_id = cursor_lpz.fetchone()[0]
 
-
-                #kuenstler sind entgegen der reinen Uebersetzung sowohl artists als auch creators
+                # kuenstler sind entgegen der reinen Uebersetzung sowohl artists als auch creators
                 for kuenstlername in kuenstler_total:
                     # Kuenstlernamen sind eigentlich einzeln gelistet, manchmal aber mehrere zusammen durch "/" separiert
                     names = kuenstlername.split("/")
 
                     for name in names:
                         # hoechste bis jetzt verwendete KuenstlerID abrufen
-                        name = name.lstrip().rstrip() #fuehrende und endende Blanks loeschen fuer semantische Gleichheit
+                        name = name.lstrip().rstrip()  # fuehrende und endende Blanks loeschen fuer semantische Gleichheit
                         cursor_lpz.execute("SELECT MAX(KuenstlerID) FROM Kuenstler;")
                         max_kuenstler_id = cursor_lpz.fetchone()[0]
 
@@ -283,25 +282,26 @@ with connection.cursor() as cursor_lpz:
                         existing_kuenstler = cursor_lpz.fetchone()
 
                         # --Fuzzy-Matching:
-                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT kuenstlername FROM Kuenstler", 86, cursor_lpz)
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT kuenstlername FROM Kuenstler", 86,
+                                                             cursor_lpz)
 
-                        if existing_kuenstler is not None:  #Fall: Kuenstlername gibt's schon in Kuenstler table
+                        if existing_kuenstler is not None:  # Fall: Kuenstlername gibt's schon in Kuenstler table
                             kuenstler_id = existing_kuenstler[0]
 
                         # --Fall: es wurde fuzzy-match gefunden, dann seine ID
                         elif fuzzy_tuple[0]:
-                            #print(fuzzy_tuple)
+                            # print(fuzzy_tuple)
                             sqlstring = "SELECT kuenstlerid FROM Kuenstler where kuenstlername='" + fuzzy_tuple[1] + "'"
                             kuenstler_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
                             eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
                                                      + ' Ähnlichkeit zwischen ' + name \
                                                      + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(kuenstler_id) + ' .'
                             cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                                   (eigene_fehlernachricht,))
+                                               (eigene_fehlernachricht,))
                             connection.commit()
                             print(eigene_fehlernachricht)
 
-                        else:  #Fall: Kuenstlernamen gibt es noch nicht in Kuenstler table, dann muss ein neuer Eintrag in Kuenstler Tabelle angelegt werden
+                        else:  # Fall: Kuenstlernamen gibt es noch nicht in Kuenstler table, dann muss ein neuer Eintrag in Kuenstler Tabelle angelegt werden
                             kuenstler_id = kuenstler_id + 1
                             cursor_lpz.execute(
                                 "INSERT INTO Kuenstler (KuenstlerID, Kuenstlername) VALUES (%s, %s)",
@@ -316,7 +316,6 @@ with connection.cursor() as cursor_lpz:
                         )
                         connection.commit()
 
-
                 for track in titles:
                     cursor_lpz.execute(
                         "INSERT INTO Titel (PID, Titelname) SELECT %s, %s "
@@ -327,7 +326,7 @@ with connection.cursor() as cursor_lpz:
 
             # Behandlung der Buecher, deren PID wie erwartet nicht mit "B" anfaengt
             elif (produktart == 'Book') and not (str(pid)).startswith('B'):
-                for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
+                for punkt in item:  # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
                         titel = punkt.text
                     elif punkt.tag == 'price':
@@ -346,11 +345,12 @@ with connection.cursor() as cursor_lpz:
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                             cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                                       (eigene_fehlernachricht,))
+                                               (eigene_fehlernachricht,))
                             connection.commit()
 
                     elif punkt.tag == 'bookspec':
-                        erscheinungsdatum_buch_roh = [publicationdate.get('date') for publicationdate in punkt.findall('publication')]
+                        erscheinungsdatum_buch_roh = [publicationdate.get('date') for publicationdate in
+                                                      punkt.findall('publication')]
                         if erscheinungsdatum_buch_roh is None:
                             erscheinungsdatum_buch = None
                         else:
@@ -385,27 +385,28 @@ with connection.cursor() as cursor_lpz:
 
                     elif punkt.tag == 'publishers':
                         verlage = [publisher.get('name') for publisher in
-                                  punkt.findall('publisher')]  # ".get('')" weil es Attribut "name" in Untertag <publisher> ist
+                                   punkt.findall(
+                                       'publisher')]  # ".get('')" weil es Attribut "name" in Untertag <publisher> ist
                         longest_verlag = max(verlage, key=len,
-                                            default=None)  # nur laengster Verlag (mit meisten Infos) erhalten und None-Handling
+                                             default=None)  # nur laengster Verlag (mit meisten Infos) erhalten und None-Handling
 
                     elif punkt.tag == 'authors':
                         authors = [author.get('name') for author in punkt.findall('author')]
 
                     elif punkt.tag == 'similars':
                         # Einlesen aehnlicher Produkte: Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
-                        aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
-                                            for sim_product in punkt.findall('sim_product')]
+                        aehnliche_produkte_tupelliste = [(sim_product.find('asin').text, sim_product.find('title').text)
+                                                         # Liste von Tupeln
+                                                         for sim_product in punkt.findall('sim_product')]
 
-                    #Falls das Buch "tracks" hat, ist das ein weiterer Hinweis auf ein Hoerbuch (s.u.):
+                    # Falls das Buch "tracks" hat, ist das ein weiterer Hinweis auf ein Hoerbuch (s.u.):
                     elif punkt.tag == 'tracks':
                         titles = [track.text for track in punkt.findall('title')]
-
 
                 cursor_lpz.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen per Trigger in der Datenbank
                 )
                 connection.commit()
 
@@ -418,8 +419,8 @@ with connection.cursor() as cursor_lpz:
                 )
                 connection.commit()
 
-                #WARNING bzgl. (wahrscheinl.) Hoerbuechern
-                if len(titles)>0:
+                # WARNING bzgl. (wahrscheinl.) Hoerbuechern
+                if len(titles) > 0:
                     eigene_fehlernachricht = 'WARNING: Speicherung erfolgt unter "Buch", obwohl Tracks vorhanden. Hinweis fuer ein potenzielles Hoerbuch,' \
                                              + ' ggf. Änderungen vornehmen. Warning entstand bei: PID: ' + pid \
                                              + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
@@ -437,20 +438,20 @@ with connection.cursor() as cursor_lpz:
                 for autorname in authors:
                     names = autorname.split(
                         "/")  # falls in einem Autornamen eig. mehrere mit "/" separiert reingechrieben
-    
+
                     for name in names:
                         # Hole maximum autor_id von AutorTabelle
                         name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(AutorID) FROM Autor;")
                         connection.commit()
                         max_autor_id = cursor_lpz.fetchone()[0]
-    
+
                         # setze initiale autor_id auf maximumn autor_id
                         if max_autor_id is None:
                             autor_id = 0
                         else:
                             autor_id = max_autor_id
-    
+
                         cursor_lpz.execute(
                             "SELECT AutorID FROM Autor WHERE Autorname = %s;",
                             (name,)
@@ -458,13 +459,13 @@ with connection.cursor() as cursor_lpz:
                         connection.commit()
                         existing_autor = cursor_lpz.fetchone()
 
-                        #--Fuzzy-Matching:
+                        # --Fuzzy-Matching:
                         fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT autorname FROM Autor", 85, cursor_lpz)
 
                         if existing_autor is not None:  # Fall: Autorname gibt's schon in Autor table
                             autor_id = existing_autor[0]
 
-                        #--Fall: es wurde fuzzy-match gefunden, dann seine ID
+                        # --Fall: es wurde fuzzy-match gefunden, dann seine ID
                         elif fuzzy_tuple[0]:
                             sqlstring = "SELECT autorid FROM Autor where autorname='" + fuzzy_tuple[1] + "'"
                             autor_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
@@ -484,7 +485,7 @@ with connection.cursor() as cursor_lpz:
                                 (autor_id, name)
                             )
                             connection.commit()
-    
+
                         cursor_lpz.execute(
                             "INSERT INTO Buch_Autor (PID, AutorID) SELECT %s, %s "
                             + "WHERE NOT EXISTS (SELECT 1 FROM Buch_Autor where PID = %s AND AutorID = %s);",
@@ -492,9 +493,9 @@ with connection.cursor() as cursor_lpz:
                         )
                         connection.commit()
 
-            #Behandlung DVD-spezifischer Struktur der XML
+            # Behandlung DVD-spezifischer Struktur der XML
             elif produktart == 'DVD':
-                for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
+                for punkt in item:  # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
                         titel = punkt.text
                     elif punkt.tag == 'price':
@@ -513,7 +514,7 @@ with connection.cursor() as cursor_lpz:
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                             cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                                       (eigene_fehlernachricht,))
+                                               (eigene_fehlernachricht,))
                             connection.commit()
 
                     elif punkt.tag == 'dvdspec':
@@ -547,13 +548,14 @@ with connection.cursor() as cursor_lpz:
 
                     elif punkt.tag == 'similars':
                         # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
-                        aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
-                                            for sim_product in punkt.findall('sim_product')]
+                        aehnliche_produkte_tupelliste = [(sim_product.find('asin').text, sim_product.find('title').text)
+                                                         # Liste von Tupeln
+                                                         for sim_product in punkt.findall('sim_product')]
 
                 cursor_lpz.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen per Trigger in der Datenbank
                 )
                 connection.commit()
 
@@ -563,7 +565,6 @@ with connection.cursor() as cursor_lpz:
                     (pid, format, laufzeit, regioncode, pid)
                 )
                 connection.commit()
-
 
                 # hoechste bereits verwendete BeteiligtenID abrufen
                 cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
@@ -597,20 +598,22 @@ with connection.cursor() as cursor_lpz:
                         existing_beteiligter = cursor_lpz.fetchone()
 
                         # --Fuzzy-Matching:
-                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90, cursor_lpz)
+                        fuzzy_tuple = berechne_fuzzy_matched(name, "SELECT beteiligtenname FROM dvd_beteiligte", 90,
+                                                             cursor_lpz)
 
                         if existing_beteiligter is not None:  # Fall: Beteiligtenname gibt's schon in BeteiligterTabelle
                             beteiligten_id = existing_beteiligter[0]
 
                         # --Fall: es wurde fuzzy-match gefunden, dann seine ID
                         elif fuzzy_tuple[0]:
-                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + fuzzy_tuple[1] + "'"
+                            sqlstring = "SELECT BeteiligtenID FROM dvd_beteiligte where beteiligtenname='" + \
+                                        fuzzy_tuple[1] + "'"
                             beteiligten_id = finde_ID_zu_matchend_name(sqlstring, cursor_lpz)
                             eigene_fehlernachricht = 'WARNING: Fuzzy-Match festgestellt. Bereits vorhandene ID wird deshalb genutzt.' \
                                                      + ' Ähnlichkeit zwischen ' + name \
                                                      + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(beteiligten_id) + ' .'
                             cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                                   (eigene_fehlernachricht,))
+                                               (eigene_fehlernachricht,))
                             connection.commit()
                             print(eigene_fehlernachricht)
 
@@ -745,7 +748,7 @@ with connection.cursor() as cursor_lpz:
                         )
                         connection.commit()
 
-            #INSERTs, die fuer alle Produktarten gleich sind:
+            # INSERTs, die fuer alle Produktarten gleich sind:
 
             # Suche Zustandsnummer fuer gegebenen Zustand
             cursor_lpz.execute(
@@ -806,7 +809,7 @@ with connection.cursor() as cursor_lpz:
             # (aehnlich_pid, aehnlich_titel)
             # aehnliche_produkte_tupelliste
             for tupel in aehnliche_produkte_tupelliste:
-                #wenn das AehnlichkeitsProdukt noch nicht in ProduktTabelle, dann noch da eintragen
+                # wenn das AehnlichkeitsProdukt noch nicht in ProduktTabelle, dann noch da eintragen
                 cursor_lpz.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) "
                     + "SELECT %s, %s, %s, %s, %s "
@@ -815,7 +818,7 @@ with connection.cursor() as cursor_lpz:
                 )
                 connection.commit()
 
-                #lexikographisch kleinere pid in "kleiner" speichern, groessere in "groesser"
+                # lexikographisch kleinere pid in "kleiner" speichern, groessere in "groesser"
                 kleiner = 0
                 groesser = 0
                 if str(pid) < str(tupel[0]):
@@ -825,7 +828,7 @@ with connection.cursor() as cursor_lpz:
                     kleiner = tupel[0]
                     groesser = pid
 
-                #Reflexivitaet der Aehnlichkeitsbeziehung wird nicht explizit abgespeichert
+                # Reflexivitaet der Aehnlichkeitsbeziehung wird nicht explizit abgespeichert
                 # -> nur aehnliche Produkte abspeichern, die nicht das aktuelle Produkt selbst sind
                 if kleiner != groesser:
                     cursor_lpz.execute(
@@ -837,93 +840,8 @@ with connection.cursor() as cursor_lpz:
                     connection.commit()
 
 
-        except psycopg2.Error as error: # Fehlernachricht in einer Tabelle loggen
-            connection.rollback()
-
-            # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
-            traceback_string = str(traceback.format_exc())
-            start_index = traceback_string.find("psycopg2.errors.") + len("psycopg2.errors.")
-            error_message = (traceback_string[start_index:]).lstrip().replace('\n', ' ')   #lstrip() entfernt Anfangsleerzeichen
-            error_message = "ERROR: " + error_message
-
-            with connection.cursor() as error_cursor:
-                error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))
-                connection.commit()
-            print("Error:", error_message)  # Fehler in Console
-            #traceback.print_exc() #ausfuerhlicher Fehler
-            continue #mit naechstem Item weitermachen
-
-
-#so kommst an attribute:  item.get('pgroup')
-#so kommst an tag: inhaltspunkt.tag
-
-# Commit the changes and close the connection
-connection.commit()
-
-#cursor_lpz.close() #Leipzig cursor schliessen um ihn nicht aus Versehen zu verwenden
-
-#----------LEIPZIG ENDE--------------------
-
-#--------------DRESDEN ANFANG---------
-
-print("Verarbeite Dresden-Daten...")
-
-# Etree-package initialisieren
-tree_three = ET.parse("backend\data\dresden.xml")
-root_three = tree_three.getroot()
-
-# Tabellen leeren vor erneutem Einfügen
-
-# DRESDEN BESONDERHEIT: Leipzig Filiale steht ja schon drin
-#die ganzen id-Zaehler laufen ja von Leipzig weiter
-#kuenstler_id = 0
-#autor_id = 0
-#beteiligten_id = 0
-#filialen_id = 0
-#angebot_id_zaehler = 0
-
-# Allgemeine Struktur fuer ein Item: I) spezifische Infos rausziehen , II) direkt in jeweilige Tabellen reinschreiben
-with connection.cursor() as cursor_dresden:
-    filialname_dresden = root_three.get('name')
-    filial_dresden_strasse = root_three.get('street')
-    filial_dresden_PLZ = root_three.get('zip')
-    fid_dresden = 2
-
-    # Filialen einfuegen
-    # DRESDEN BESONDERHEIT: Leipzig Filiale steht ja schon drin
-    cursor_dresden.execute(
-        "INSERT INTO Filiale (FID, Filialname) SELECT %s, %s "
-        + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
-        (fid_dresden, filialname_dresden, fid_dresden)
-    )
-    connection.commit()
-
-    # DRESDEN BESONDERHEIT: Leipzig Filiale steht ja schon drin
-    cursor_dresden.execute(
-        "INSERT INTO Anschrift (FID, Strasse, Hausnummer, PLZ) SELECT %s, %s, %s, %s "
-        + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
-        (2, filial_dresden_strasse, None, filial_dresden_PLZ, 2)
-    )
-    connection.commit()
-
-    # Checke alle Zustaende im gesamten Dokument fuer ZustandTabelle
-    # (in LepzigXML gibt es nur 'new')
-    states = set()
-    for x in root_three.iter():
-        if x.tag == "price":
-            state = x.get("state")
-            states.add(state)
-
-    # ZustaendeTabelle befuellen
-    for state in states:
-        try:
-            cursor_dresden.execute( #DRESDEN BESONDERHEIT: es stehen ja schon Zustaende von Leipzig drin, deshalb WHERE NOT EXISTS
-                "INSERT INTO Zustand (Beschreibung) SELECT %s WHERE NOT EXISTS (SELECT 1 FROM Zustand where Beschreibung = %s);",
-                (state, state)  # WICHTIG: du musst Tupel übergeben, auch bei nur einer Wertuebergabe, deshalb ","
-            )
         except psycopg2.Error as error:  # Fehlernachricht in einer Tabelle loggen
             connection.rollback()
-            # error_message = str(error)  #kurze error message fuer Tabelle
 
             # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
             traceback_string = str(traceback.format_exc())
@@ -937,24 +855,99 @@ with connection.cursor() as cursor_dresden:
                 connection.commit()
             print("Error:", error_message)  # Fehler in Console
             # traceback.print_exc() #ausfuerhlicher Fehler
+            continue  # mit naechstem Item weitermachen
+
+# so kommst an attribute:  item.get('pgroup')
+# so kommst an tag: inhaltspunkt.tag
+
+# Commit the changes and close the connection
+connection.commit()
+
+# cursor_lpz.close() #Leipzig cursor schliessen um ihn nicht aus Versehen zu verwenden
+
+# ----------LEIPZIG ENDE--------------------
+
+# --------------DRESDEN ANFANG---------
+
+print("Verarbeite Dresden-Daten...")
+
+# Etree-package initialisieren
+tree_three = ET.parse("backend\data\dresden.xml")
+root_three = tree_three.getroot()
+
+# Tabellen leeren vor erneutem Einfügen
+
+# DRESDEN BESONDERHEIT: Leipzig Filiale steht ja schon drin
+# die id-Zaehler laufen von Leipzig weiter
+
+# Allgemeine Struktur fuer ein Item: I) spezifische Infos rausziehen , II) direkt in jeweilige Tabellen reinschreiben
+with connection.cursor() as cursor_dresden:
+    filialname_dresden = root_three.get('name')
+    filial_dresden_strasse = root_three.get('street')
+    filial_dresden_PLZ = root_three.get('zip')
+    # FID 1 wird schon von Leipzig benutzt
+    fid_dresden = 2
+
+    # Filiale einfuegen, wenn sie noch nicht in der Tabelle steht
+    cursor_dresden.execute(
+        "INSERT INTO Filiale (FID, Filialname) SELECT %s, %s "
+        + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
+        (fid_dresden, filialname_dresden, fid_dresden)
+    )
+    connection.commit()
+
+    # Anschrift einfuegen, wenn sie noch nicht in der Tabelle steht
+    cursor_dresden.execute(
+        "INSERT INTO Anschrift (FID, Strasse, Hausnummer, PLZ) SELECT %s, %s, %s, %s "
+        + "WHERE NOT EXISTS (SELECT 1 FROM Filiale where FID = %s);",
+        (2, filial_dresden_strasse, None, filial_dresden_PLZ, 2)
+    )
+    connection.commit()
+
+    # Checke alle Zustaende im gesamten Dokument fuer ZustandTabelle
+    states = set()
+    for x in root_three.iter():
+        if x.tag == "price":
+            state = x.get("state")
+            states.add(state)
+
+    # ZustaendeTabelle befuellen
+    for state in states:
+        try:
+            cursor_dresden.execute(
+                # DRESDEN BESONDERHEIT: es stehen ja schon Zustaende von Leipzig drin, deshalb WHERE NOT EXISTS
+                "INSERT INTO Zustand (Beschreibung) SELECT %s WHERE NOT EXISTS (SELECT 1 FROM Zustand where Beschreibung = %s);",
+                (state, state)
+            )
+        except psycopg2.Error as error:  # Fehlernachricht in einer Tabelle loggen
+            connection.rollback()
+
+            # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
+            traceback_string = str(traceback.format_exc())
+            start_index = traceback_string.find("psycopg2.errors.") + len("psycopg2.errors.")
+            error_message = (traceback_string[start_index:]).lstrip().replace('\n',
+                                                                              ' ')  # lstrip() entfernt Anfangsleerzeichen
+            error_message = "ERROR: " + error_message
+
+            with connection.cursor() as error_cursor:
+                error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))
+                connection.commit()
+            print("Error:", error_message)  # Fehler in Console
             continue
 
     for item in root_three:
         try:
 
-            # die folgenden Infos sind bei Leipzig bei jeder Produktart gleich UND sind in Item-Tag zu finden
-            # print(item.attrib)
+            # die folgenden Infos sind bei Dresden bei jeder Produktart gleich UND sind in Item-Tag zu finden
             produktart = item.get('pgroup')
             pid = item.get('asin')
 
             verkaufsrang = item.get('salesrank')
-            if len(verkaufsrang) == 0:  # bei leerem String, muss ich fuer SQL eine NULLwert geben
+            if len(verkaufsrang) == 0:
                 verkaufsrang = None
 
-
-
-
-
+            # die PID von Buechern faengt normalerweise nicht mit "B" an
+            # sollte dies der Fall sein, ist das ein Hinweis auf ein als "Buch" eingetragenes Hoerbuch und eine Warnung wird ausgegeben und geloggt
             if (produktart == 'Music') or (produktart == 'Book' and (str(pid)).startswith('B')):
 
                 # WARNING bzgl. (wahrscheinl.) Hoerbuechern, z.B.: PID "B000AMF7X8"
@@ -963,7 +956,7 @@ with connection.cursor() as cursor_dresden:
                                              + ' Gründe wie PID sprechen für CD. Ggf. manuell überprüfen. Warning entstand bei: PID: ' + pid \
                                              + ', Produktart: ' + produktart
                     cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                       (eigene_fehlernachricht,))
+                                           (eigene_fehlernachricht,))
                     connection.commit()
                     print(eigene_fehlernachricht)
 
@@ -973,19 +966,18 @@ with connection.cursor() as cursor_dresden:
                     if punkt.tag == 'title':
                         titel = punkt.text
 
-                    # bei Dresden musst fuer Bild innerhhalb des for-punkt-loop
+                    # Unterschied zu Leipzig: URL zum Bild ist unter Attribut "img" in "details" gespeichert, nicht als eigener punkt
                     elif punkt.tag == 'details':
                         image_url = item.get('img')
-                        if (image_url is not None) and (len(image_url) > 0):  # checkt ob da ueberhaupt sowas wie URL drin ist
+                        if (image_url is not None) and (
+                                len(image_url) > 0):  # checkt ob da ueberhaupt sowas wie URL drin ist
                             response = requests.get(image_url)  # downloadet das Bild via requests-Package
                             image_data = response.content  # psycopg2.Binary(image_data)  dann später als value fuer die sql-query
                             bild = psycopg2.Binary(image_data)
                         else:
                             bild = None
 
-
-
-                    elif punkt.tag == 'price':  # das ist zwar auch bei jeder Produktart das gleiche Vorgehen
+                    elif punkt.tag == 'price':
                         multiplizierer = punkt.get('mult')
                         zustand = punkt.get('state')
                         currency = punkt.get('currency')
@@ -995,46 +987,44 @@ with connection.cursor() as cursor_dresden:
                         else:
                             europreis = None
 
-                        # Test, dass wirklich nur EUR-Preise
+                        # Ueberpruefung auf validen Europreis
                         if (currency != 'EUR') and (len(currency) > 0):
                             print("currency ist nicht null und nicht Euro: " + currency)
-                            # tritt bei Music zweimal auf, aber das es "EUREUR" ist, kann man davon ausgehen, dass Euro gemeint war
                             eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                             cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                               (eigene_fehlernachricht,))
+                                                   (eigene_fehlernachricht,))
                             connection.commit()
 
 
                     elif punkt.tag == 'labels':
-                        labels = [label.text for label in #DRESDEN BESONDERHEIT: label steht als Text
+                        labels = [label.text for label in  # DRESDEN BESONDERHEIT: label steht als Text
                                   punkt.findall('label')]  # ".get('')" weil es Attribut "name" in Untertag <label> ist
                         longest_label = max(labels, key=len,
                                             default=None)  # nur laengstes Label (mit meisten Infos) erhalten und None-Handling
                     elif punkt.tag == 'musicspec':
                         erscheinungsdatum_roh = [releasedate.text for releasedate in punkt.findall('releasedate')]
                         if erscheinungsdatum_roh is None:
-                            erscheinungsdatum = None  # Or provide a default value or expression if needed
+                            erscheinungsdatum = None
                         else:
                             try:
                                 erscheinungsdatum = erscheinungsdatum_roh[0]
                             except:
                                 erscheinungsdatum = None
-                        # erscheinungsdatum = str(erscheinungsdatum_roh[0]) #ohenhin bloss einelementige Liste
-                        # print(erscheinungsdatum)
+
                     elif punkt.tag == 'tracks':
                         titles = [track.text for track in punkt.findall(
                             'title')]  # ".text" weil es gibt immer Untertag <title> mit Text -> Titel
-                    elif punkt.tag == 'artists': #DRESDEN BESONDERHEIT: artist steht als Text
+                    elif punkt.tag == 'artists':  # DRESDEN BESONDERHEIT: artist steht als Text
                         artists = [artist.text for artist in punkt.findall('artist')]
                         kuenstler_total.extend(artists)
-                    elif punkt.tag == 'creators': #DRESDEN BESONDERHEIT: artist steht als Text
+                    elif punkt.tag == 'creators':  # DRESDEN BESONDERHEIT: artist steht als Text
                         creators = [creator.text for creator in punkt.findall('creator')]
                         kuenstler_total.extend(creators)
 
-                    elif punkt.tag == 'similars': #DRESDEN BESONDERHEIT: Item statt sim_product, asin Attribut statt Tag
-                        # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel), siehe Leipzig
+                    elif punkt.tag == 'similars':  # DRESDEN BESONDERHEIT: Item statt sim_product, asin Attribut statt Tag
+                        # aehnliche Produkte als Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel), siehe Leipzig
                         aehnliche_produkte_tupelliste = [(item.get('asin'), item.text)
                                                          # Liste von Tupeln
                                                          for item in punkt.findall('item')]
@@ -1043,7 +1033,7 @@ with connection.cursor() as cursor_dresden:
                 cursor_dresden.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen per Trigger in der Datenbank
                 )
                 connection.commit()
 
@@ -1118,7 +1108,7 @@ with connection.cursor() as cursor_dresden:
                                                      + ' Ähnlichkeit zwischen ' + name \
                                                      + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(kuenstler_id) + ' .'
                             cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                               (eigene_fehlernachricht,))
+                                                   (eigene_fehlernachricht,))
                             connection.commit()
                             print(eigene_fehlernachricht)
 
@@ -1155,7 +1145,8 @@ with connection.cursor() as cursor_dresden:
                     # bei Dresden musst fuer Bild innerhhalb des for-punkt-loop
                     elif punkt.tag == 'details':
                         image_url = item.get('img')
-                        if (image_url is not None) and (len(image_url) > 0):  # checkt ob da ueberhaupt sowas wie URL drin ist
+                        if (image_url is not None) and (
+                                len(image_url) > 0):  # checkt ob da ueberhaupt sowas wie URL drin ist
                             response = requests.get(image_url)  # downloadet das Bild via requests-Package
                             image_data = response.content  # psycopg2.Binary(image_data)  dann später als value fuer die sql-query
                             bild = psycopg2.Binary(image_data)
@@ -1178,7 +1169,7 @@ with connection.cursor() as cursor_dresden:
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                             cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                               (eigene_fehlernachricht,))
+                                                   (eigene_fehlernachricht,))
                             connection.commit()
 
                     elif punkt.tag == 'bookspec':
@@ -1212,7 +1203,7 @@ with connection.cursor() as cursor_dresden:
                                                      + ' ggf. Änderungen vornehmen. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                             cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                               (eigene_fehlernachricht,))
+                                                   (eigene_fehlernachricht,))
                             connection.commit()
                             print(eigene_fehlernachricht)
 
@@ -1223,7 +1214,7 @@ with connection.cursor() as cursor_dresden:
                         longest_verlag = max(verlage, key=len,
                                              default=None)  # nur laengster Verlag (mit meisten Infos) erhalten und None-Handling
 
-                    elif punkt.tag == 'authors': # DRESDEN BESONDERHEIT: .text statt Attribut name
+                    elif punkt.tag == 'authors':  # DRESDEN BESONDERHEIT: .text statt Attribut name
                         authors = [author.text for author in punkt.findall('author')]
 
                     elif punkt.tag == 'similars':  # DRESDEN BESONDERHEIT: Item statt sim_product, asin Attribut statt Tag
@@ -1240,7 +1231,7 @@ with connection.cursor() as cursor_dresden:
                 cursor_dresden.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen per Trigger in der Datenbank
                 )
                 connection.commit()
 
@@ -1275,7 +1266,7 @@ with connection.cursor() as cursor_dresden:
                                              + ' ggf. Änderungen vornehmen. Warning entstand bei: PID: ' + pid \
                                              + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                     cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                       (eigene_fehlernachricht,))
+                                           (eigene_fehlernachricht,))
                     connection.commit()
                     print(eigene_fehlernachricht)
 
@@ -1323,7 +1314,7 @@ with connection.cursor() as cursor_dresden:
                                                      + ' Ähnlichkeit zwischen ' + name \
                                                      + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(autor_id) + ' .'
                             cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                               (eigene_fehlernachricht,))
+                                                   (eigene_fehlernachricht,))
                             connection.commit()
                             print(eigene_fehlernachricht)
 
@@ -1351,7 +1342,8 @@ with connection.cursor() as cursor_dresden:
                         # bei Dresden musst fuer Bild innerhhalb des for-punkt-loop
                     elif punkt.tag == 'details':
                         image_url = item.get('img')
-                        if (image_url is not None) and (len(image_url) > 0):  # checkt ob da ueberhaupt sowas wie URL drin ist
+                        if (image_url is not None) and (
+                                len(image_url) > 0):  # checkt ob da ueberhaupt sowas wie URL drin ist
                             response = requests.get(image_url)  # downloadet das Bild via requests-Package
                             image_data = response.content  # psycopg2.Binary(image_data)  dann später als value fuer die sql-query
                             bild = psycopg2.Binary(image_data)
@@ -1374,7 +1366,7 @@ with connection.cursor() as cursor_dresden:
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
                                                      + ', Produktart: ' + produktart + ', Titel: ' + titel + '.'
                             cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                               (eigene_fehlernachricht,))
+                                                   (eigene_fehlernachricht,))
                             connection.commit()
 
                     elif punkt.tag == 'dvdspec':
@@ -1419,22 +1411,21 @@ with connection.cursor() as cursor_dresden:
                                                          for item in punkt.findall('item')]
 
                 # Einschreiben in Tabellen
-                ####A
                 cursor_dresden.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen
+                    (pid, titel, None, verkaufsrang, bild, pid)  # Rating errechnet sich ja aus Rezensionen per Trigger in der Datenbank
                 )
                 connection.commit()
 
-                # DRESDEN BESONDERHEIT: Falls Produkt bloss ueber SIMILAR reinkam, steht es nur mit PID drin, dann muss es geupdatet werden
+                # DRESDEN BESONDERHEIT: Falls Produkt bisher nur als aehnliches Produkt eingeschrieben wurde, steht es nur mit PID drin. Dann muss es vervollstaendigt werden
                 cursor_dresden.execute(
                     "SELECT * FROM Produkt WHERE PID = %s AND Titel IS NULL AND Rating IS NULL AND Verkaufsrang IS NULL AND Bild IS NULL",
                     (pid,)
                 )
                 row = cursor_dresden.fetchone()
                 if row is not None:
-                    # If a row is found, update it with the new values
+                    # wenn das Produkt noch nicht eingeschrieben wurde, einschreiben wie gewohnt (analog zu Leipzig)
                     cursor_dresden.execute(
                         "UPDATE Produkt SET Titel = %s, Rating = %s, Verkaufsrang = %s, Bild = %s WHERE PID = %s",
                         (titel, None, verkaufsrang, bild, pid)
@@ -1449,8 +1440,7 @@ with connection.cursor() as cursor_dresden:
                 )
                 connection.commit()
 
-
-                # Retrieve the maximum beteiligten_id from the DVD_Beteiligte table
+                # hoechste bisher verwendete beteiligten_id auslesen
                 cursor_dresden.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                 max_beteiligten_id = cursor_dresden.fetchone()[0]
 
@@ -1464,13 +1454,12 @@ with connection.cursor() as cursor_dresden:
                         "/")  # falls in einem Actornamen eig. mehrere mit "/" separiert reingechrieben
 
                     for name in names:
-                        # print(name)
-                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        # Hole hoechste beteiligten_id von BeteiligteTabelle
                         name = name.lstrip().rstrip()
                         cursor_dresden.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_dresden.fetchone()[0]
 
-                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        # setze initiale beteiligten_id auf hoechste beteiligten_id
                         if max_beteiligten_id is None:
                             beteiligten_id = 0
                         else:
@@ -1498,7 +1487,7 @@ with connection.cursor() as cursor_dresden:
                                                      + ' Ähnlichkeit zwischen ' + name \
                                                      + ' und ' + fuzzy_tuple[1] + ' . ID: ' + str(beteiligten_id) + ' .'
                             cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
-                                               (eigene_fehlernachricht,))
+                                                   (eigene_fehlernachricht,))
                             connection.commit()
                             print(eigene_fehlernachricht)
 
@@ -1523,13 +1512,12 @@ with connection.cursor() as cursor_dresden:
                         "/")
 
                     for name in names:
-                        # print(name)
-                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        # Hole hoechste beteiligten_id von BeteiligteTabelle
                         name = name.lstrip().rstrip()
                         cursor_dresden.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_dresden.fetchone()[0]
 
-                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        # setze initiale beteiligten_id auf hoechste beteiligten_id
                         if max_beteiligten_id is None:
                             beteiligten_id = 0
                         else:
@@ -1582,13 +1570,12 @@ with connection.cursor() as cursor_dresden:
                         "/")
 
                     for name in names:
-                        # print(name)
-                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        # Hole hoechste beteiligten_id von BeteiligteTabelle
                         name = name.lstrip().rstrip()
                         cursor_dresden.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_dresden.fetchone()[0]
 
-                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        # setze initiale beteiligten_id auf hoechste beteiligten_id
                         if max_beteiligten_id is None:
                             beteiligten_id = 0
                         else:
@@ -1635,21 +1622,20 @@ with connection.cursor() as cursor_dresden:
                         )
                         connection.commit()
 
-            # INSERTs, die fuer alle Produktarten gleich:
+            # INSERTs, die fuer alle Produktarten gleich sind:
 
             # Suche Zustandsnummer fuer gegebenen Zustand
-            # eig. fuer alle Produktarten gleich
             cursor_dresden.execute(
                 "SELECT Zustandsnummer FROM Zustand WHERE Beschreibung = %s;",
                 (zustand,)
             )
             zustandsnummer_aktuell = cursor_dresden.fetchone()
 
-            # Hole maximum AngebotsID von AngebotTabelle (Analog zu Kuenstlertabelle in der Hinsicht)
+            # Hole hoechste AngebotsID von AngebotTabelle (Analog zu Kuenstlertabelle in der Hinsicht)
             cursor_dresden.execute("SELECT MAX(AngebotsID) FROM Angebot;")
             max_angebot_id_zaehler = cursor_dresden.fetchone()[0]
 
-            # setze initiale angebot_id_zaehler auf maximumn angebot_id_zaehler
+            # setze initiale angebot_id_zaehler auf hoechste angebot_id_zaehler
             if max_angebot_id_zaehler is None:
                 angebot_id_zaehler = 0
             else:
@@ -1692,7 +1678,7 @@ with connection.cursor() as cursor_dresden:
                 connection.commit()
 
             # AehnlichkeitTabelle befuellen (fuer alle Arten gleich)
-            # (lexikographisch) kleinere PID ist immer PID1
+            # (lexikographisch) kleinere PID ist immer PID1 (asymmetrische Speicherung)
             # aehnliche_produkte_tupelliste  nutzen
             # (aehnlich_pid, aehnlich_titel)
             # aehnliche_produkte_tupelliste
@@ -1706,6 +1692,7 @@ with connection.cursor() as cursor_dresden:
                 )
                 connection.commit()
 
+                # lexikographisch kleinere pid in "kleiner" speichern, groessere in "groesser"
                 kleiner = 0
                 groesser = 0
                 if str(pid) < str(tupel[0]):
@@ -1715,6 +1702,8 @@ with connection.cursor() as cursor_dresden:
                     kleiner = tupel[0]
                     groesser = pid
 
+                # Reflexivitaet der Aehnlichkeitsbeziehung wird nicht explizit abgespeichert
+                # -> nur aehnliche Produkte abspeichern, die nicht das aktuelle Produkt selbst sind
                 if kleiner != groesser:
                     cursor_dresden.execute(
                         "INSERT INTO Aehnlichkeit (PID1, PID2) "
@@ -1727,7 +1716,6 @@ with connection.cursor() as cursor_dresden:
 
         except psycopg2.Error as error:  # Fehlernachricht in einer Tabelle loggen
             connection.rollback()
-            # error_message = str(error)  #kurze error message fuer Tabelle
 
             # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
             traceback_string = str(traceback.format_exc())
@@ -1740,42 +1728,43 @@ with connection.cursor() as cursor_dresden:
                 error_cursor.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)", (error_message,))
                 connection.commit()
             print("Error:", error_message)  # Fehler in Console
-            # traceback.print_exc() #ausfuerhlicher Fehler
             continue  # mit naechstem Item weitermachen
 
 # so kommst an attribute:  item.get('pgroup')
 # so kommst an tag: inhaltspunkt.tag
 
-
 # Commit the changes and close the connection
 connection.commit()
 
-#---------DRESDEN ENDE-----------
+# ---------DRESDEN ENDE-----------
 
 
-#---------KUNDENREZENSIONEN ANFANG--------------
+# ---------KUNDENREZENSIONEN ANFANG--------------
 
+#Rezensionen, die ueber Gastzugaenge geschrieben wurden, werden als Rezensionen von verschiedenen usern behandelt
+#Da alle den usernamen (=KundenID) "guest" tragen, werden die Gaeste durchnummeriert
 guest_nummer_zaehler = 0
 
 with connection.cursor() as cursor:
     with open(r"backend\data\reviews.csv", encoding="utf8") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=",")
-        #csv-Header ueberspringen
+        # csv-Header ueberspringen
         next(csv_reader)
         for row in csv_reader:
             pid = row[0]
             KundenID = row[4]
-            #alle "guest" als verschiedene Kunden behandeln
+            # alle "guest" als verschiedene Kunden behandeln
             if KundenID == "guest":
                 guest_nummer_zaehler += 1
-                KundenID = KundenID+str(guest_nummer_zaehler)
+                #einzigartige Zahl als String an "guest" anfuegen
+                KundenID = KundenID + str(guest_nummer_zaehler)
 
             try:
                 # Produkt einfuegen, wenn es neu ist
                 cursor.execute(
                     "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                    (pid, None, None, None, None, pid)  # hier schreibst Variablen die rein sollen
+                    (pid, None, None, None, None, pid)
                 )
                 # Kunden einfuegen, wenn er neu ist
                 cursor.execute(
@@ -1784,7 +1773,7 @@ with connection.cursor() as cursor:
                     (KundenID, KundenID)
                 )
                 # Kundenrezension einfuegen
-                # html.unescape liest Sonderzeichen richtig aus
+                # html.unescape liest html-Sonderzeichen richtig aus
                 cursor.execute(
                     "INSERT INTO Kundenrezension(KundenID, PID, Punkte, Helpful, Summary, Content, Reviewdate) VALUES (%s, %s, %s, %s, %s, %s, %s);",
                     (KundenID, pid, row[1], row[2], html.unescape(row[5]), html.unescape(row[6]), row[3])
@@ -1794,7 +1783,6 @@ with connection.cursor() as cursor:
 
             except psycopg2.Error as error:  # Fehlernachricht in einer Tabelle loggen
                 connection.rollback()
-                # error_message = str(error)  #kurze error message fuer Tabelle
 
                 # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
                 traceback_string = str(traceback.format_exc())
@@ -1811,66 +1799,76 @@ with connection.cursor() as cursor:
 
 connection.commit()
 
-#---------KUNDENREZENSIONEN ENDE--------------
+# ---------KUNDENREZENSIONEN ENDE--------------
 
-#---------KATEGORIEN ANFANG-------------------
+# ---------KATEGORIEN ANFANG-------------------
 
 # Etree-package initialisieren
 tree = ET.parse("backend\data\categories.xml")
 root = tree.getroot()
 
-#fuehrende Zahl zeigt an, ob es Haupt- oder Unterkategorie ist
-#hauptkategorien beginnen mit 1
-#unterkategorien beginnen mit 2
+# fuehrende Zahl zeigt an, ob es Haupt- oder Unterkategorie ist
+# hauptkategorien beginnen mit 1
+# unterkategorien beginnen mit 2
+
+#eigens eingefuerte KategorienID wird hochgezaehlt (Namen koennen nicht verwendet werden, da sie nicht eindeutig sind)
 kategorie_id_zaehler = 0
 
+
+#rekursive Funktion fuer Traversal des Kategorien-Baums
 def grabeTiefer(oberkategorie, ober_id):
+
     for unter in oberkategorie:
 
+        #Produkt gefunden, das zur Kategorie gehoert
         if unter.tag == 'item':
             # item_tag = unter.tag
-            # dann unter.text into Produkt (braucht es später nicht mehr), aber (Stand 13.5.) ist ja Produkttabelle noch nicht gefüllt:
+            #Produkt einschreiben, wenn es noch nicht in "Produkt" steht
             cursor.execute(
                 "INSERT INTO Produkt (PID, Titel, Rating, Verkaufsrang, Bild) SELECT %s, %s, %s, %s, %s "
-                +"WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
-                (unter.text, None, None, None, None, unter.text)  # hier schreibst Variablen die rein sollen
+                + "WHERE NOT EXISTS (SELECT 1 FROM Produkt where PID = %s);",
+                (unter.text, None, None, None, None, unter.text)
             )
 
+            #n:m - Tabelle befuellen
             cursor.execute(
                 "INSERT INTO Produkt_Kategorie (KatID, PID) SELECT %s, %s "
-                +"WHERE NOT EXISTS (SELECT 1 FROM Produkt_Kategorie WHERE KatID= %s AND PID = %s);",
-                (ober_id, unter.text, ober_id, unter.text)  # hier schreibst Variablen die rein sollen
+                + "WHERE NOT EXISTS (SELECT 1 FROM Produkt_Kategorie WHERE KatID= %s AND PID = %s);",
+                (ober_id, unter.text, ober_id, unter.text)
             )
 
+        #Unterkategorie gefunden
         if unter.tag == 'category':
             global kategorie_id_zaehler
             kategorie_id_zaehler = kategorie_id_zaehler + 1
+            #2 am Anfang der ID weil es sich um eine Unterkategorie handelt
             new_id = int("2" + (str(kategorie_id_zaehler)))
             # katgorie reinschreiben in tabelle kategorie
-            # weitergraben
             cursor.execute(
                 "INSERT INTO Kategorie (KatID, Kategoriename, Oberkategorie) VALUES (%s, %s, %s);",
                 (new_id, unter.text, ober_id)
             )
+            #rekursiver Aufruf
             grabeTiefer(unter, new_id)  # jetzt ist Unter die neue Oberkategorie
 
-with connection.cursor() as cursor:
-    for hauptkategorie in root:
-        kategorie_id_zaehler = kategorie_id_zaehler + 1  #hier musst nicht "global" setzen weil es keine Funktion ist
-        #print(hauptkategorie.text)
-        actual_id = int("1" + str(kategorie_id_zaehler))
-        #print(id_zaehler)
-        cursor.execute(
-             "INSERT INTO Kategorie (KatID, Kategoriename, Oberkategorie) VALUES (%s, %s, %s);",
-                          (actual_id, hauptkategorie.text, None) #hier schreibst Variablen die rein sollen
-                       )
-        grabeTiefer(hauptkategorie, actual_id)
 
+with connection.cursor() as cursor:
+    #erste Ebene des Kategorienbaums enthaelt die Hauptkategorien
+    #iterativer Zugriff
+    for hauptkategorie in root:
+        kategorie_id_zaehler = kategorie_id_zaehler + 1
+        #ID beginnt mit 1, weil es sich um Hauptkategorien handelt
+        actual_id = int("1" + str(kategorie_id_zaehler))
+        #Einschreiben ohne Oberkategorie
+        cursor.execute(
+            "INSERT INTO Kategorie (KatID, Kategoriename, Oberkategorie) VALUES (%s, %s, %s);",
+            (actual_id, hauptkategorie.text, None)
+        )
+        #Abdecken der Unterkategorien per Rekursion
+        grabeTiefer(hauptkategorie, actual_id)
 
 connection.commit()
 
-#---------KATEGORIEN ENDE-------------------
+# ---------KATEGORIEN ENDE-------------------
 
 connection.close()
-
-
