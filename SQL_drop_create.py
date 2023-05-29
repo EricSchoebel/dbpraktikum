@@ -153,19 +153,19 @@ CREATE INDEX pid_index ON Angebot(PID); /*schnellere JOINs*/
 CREATE INDEX fid_index ON Angebot(FID); /*schnellere JOINs*/
 
 CREATE TABLE Kunde (
-	KundenID INT PRIMARY KEY,
+	KundenID varchar(100) PRIMARY KEY,
 	Kundenname VARCHAR(100)
 );
 
 CREATE TABLE Konto (
-    	KundenID INT,
+    	KundenID varchar(100),
 Kontonummer INT,
     	PRIMARY KEY(KundenID, Kontonummer),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID)
 );
 
 CREATE TABLE Lieferadresse (
-	KundenID INT,
+	KundenID varchar(100),
 	Strasse VARCHAR(100),
 	Hausnummer VARCHAR(10),
 	PLZ VARCHAR(10),
@@ -173,7 +173,7 @@ CREATE TABLE Lieferadresse (
 );
 
 CREATE TABLE Kundenrezension (
-	KundenID INT,
+	KundenID varchar(100),
 	PID VARCHAR(20),
 	Punkte INT CHECK (Punkte BETWEEN 1 AND 5),
 	Helpful INT,
@@ -206,7 +206,7 @@ EXECUTE FUNCTION UpdateRatingFunction();
 
 CREATE TABLE Kauf (
 	AngebotsID INT,
-	KundenID INT,
+	KundenID varchar(100),
 	Menge INT,
 	Zeitpunkt TIMESTAMP,
 	PRIMARY KEY (KundenID, AngebotsID, Zeitpunkt),
