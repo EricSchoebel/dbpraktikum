@@ -74,7 +74,7 @@ print("Verarbeite Leipzig-Daten...")
 tree_two = ET.parse("backend\data\leipzig_transformed.xml")
 root_two = tree_two.getroot()
 
-#Tabellen loeschen und neu erstellen (SQL-Befehle siehe "SQL_drop_create.py"
+#Tabellen loeschen und neu erstellen (SQL-Befehle siehe "SQL_drop_create.py")
 with connection.cursor() as cleaner2:
     cleaner2.execute(sql_drop_tables)
     cleaner2.execute(sql_creates)
@@ -167,7 +167,7 @@ with connection.cursor() as cursor_lpz:
             else:
                 bild = None
 
-
+            # Behandlung CD-spezifischer Teile der XML
             if (produktart == 'Music') or (produktart == 'Book' and (str(pid)).startswith('B')):
 
                 # die PID von Buechern faengt normalerweise nicht mit "B" an
@@ -199,7 +199,6 @@ with connection.cursor() as cursor_lpz:
                         # Ueberpruefung, ob ein valider Europreis vorliegt
                         if (currency != 'EUR') and (len(currency)>0):
                             print("currency ist nicht null und nicht Euro: "+currency)
-                            #tritt bei Music zweimal auf, aber das es "EUREUR" ist, kann man davon ausgehen, dass Euro gemeint war
                             #Warnung ausgeben und loggen
                             eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
                                                      + 'Datenbank nimmt EUR an. Warning entstand bei: PID: ' + pid \
@@ -262,7 +261,8 @@ with connection.cursor() as cursor_lpz:
 
                 #kuenstler sind entgegen der reinen Uebersetzung sowohl artists als auch creators
                 for kuenstlername in kuenstler_total:
-                    names = kuenstlername.split("/") #weil manchmal in einem kuenstlernamen eig. mehrere mit "/" separiert reingechrieben
+                    # Kuenstlernamen sind eigentlich einzeln gelistet, manchmal aber mehrere zusammen durch "/" separiert
+                    names = kuenstlername.split("/")
 
                     for name in names:
                         # hoechste bis jetzt verwendete KuenstlerID abrufen
@@ -325,7 +325,7 @@ with connection.cursor() as cursor_lpz:
                     )
                     connection.commit()
 
-
+            # Behandlung der Buecher, deren PID wie erwartet nicht mit "B" anfaengt
             elif (produktart == 'Book') and not (str(pid)).startswith('B'):
                 for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
@@ -339,7 +339,7 @@ with connection.cursor() as cursor_lpz:
                             europreis = decimal.Decimal(multiplizierer) * decimal.Decimal(centpreis)
                         else:
                             europreis = None
-                        # Test, dass wirklich nur EUR-Preise
+                        # Ueberpruefung auf validen Euro-Preis
                         if (currency != 'EUR') and (len(currency) > 0):
                             print("currency ist nicht null und nicht Euro: " + currency)
                             eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
@@ -393,11 +393,11 @@ with connection.cursor() as cursor_lpz:
                         authors = [author.get('name') for author in punkt.findall('author')]
 
                     elif punkt.tag == 'similars':
-                        # Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
+                        # Einlesen aehnlicher Produkte: Liste von Tupeln mit Tupel: (aehnlich_pid, aehnlich_titel)
                         aehnliche_produkte_tupelliste = [ (sim_product.find('asin').text, sim_product.find('title').text)  #Liste von Tupeln
                                             for sim_product in punkt.findall('sim_product')]
 
-                    #nur fuer TrackCheck ob eventuell Hoerbuch:
+                    #Falls das Buch "tracks" hat, ist das ein weiterer Hinweis auf ein Hoerbuch (s.u.):
                     elif punkt.tag == 'tracks':
                         titles = [track.text for track in punkt.findall('title')]
 
@@ -417,7 +417,6 @@ with connection.cursor() as cursor_lpz:
                     (pid, seitenzahl, erscheinungsdatum_buch, erscheinungsdatum_buch, isbn, longest_verlag, pid)
                 )
                 connection.commit()
-                #print(erscheinungsdatum_buch)
 
                 #WARNING bzgl. (wahrscheinl.) Hoerbuechern
                 if len(titles)>0:
@@ -429,19 +428,17 @@ with connection.cursor() as cursor_lpz:
                     connection.commit()
                     print(eigene_fehlernachricht)
 
-                # Retrieve the maximum autor_id from the Autor table
+                # hoechste bereits verwendete AutorID abrufen
                 cursor_lpz.execute("SELECT MAX(AutorID) FROM Autor;")
                 max_autor_id = cursor_lpz.fetchone()[0]
 
                 # wenn es den Autornamen schon gibt, dann keinen neuen Eintrag in Autortabelle machen,
                 # sondern mit bestehender AutorID die Verbindung in Buch_Autor machen
-                # (hochzaehllogik musste man aufpassen)
                 for autorname in authors:
                     names = autorname.split(
                         "/")  # falls in einem Autornamen eig. mehrere mit "/" separiert reingechrieben
     
                     for name in names:
-                        # print(name)
                         # Hole maximum autor_id von AutorTabelle
                         name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(AutorID) FROM Autor;")
@@ -495,12 +492,12 @@ with connection.cursor() as cursor_lpz:
                         )
                         connection.commit()
 
-
+            #Behandlung DVD-spezifischer Struktur der XML
             elif produktart == 'DVD':
                 for punkt in item: # "punkt" ist ein Tag (also inhaltlicher Punkt), wegens Namensgleichheit nicht "tag"
                     if punkt.tag == 'title':
                         titel = punkt.text
-                    elif punkt.tag == 'price': #das ist zwar auch bei jeder Produktart das gleiche Vorgehen
+                    elif punkt.tag == 'price':
                         multiplizierer = punkt.get('mult')
                         zustand = punkt.get('state')
                         currency = punkt.get('currency')
@@ -509,7 +506,7 @@ with connection.cursor() as cursor_lpz:
                             europreis = decimal.Decimal(multiplizierer) * decimal.Decimal(centpreis)
                         else:
                             europreis = None
-                        # Test, dass wirklich nur EUR-Preise
+                        # Ueberpruefung auf validen Europreis
                         if (currency != 'EUR') and (len(currency) > 0):
                             print("currency ist nicht null und nicht Euro: " + currency)
                             eigene_fehlernachricht = 'WARNING: "currency" ist nicht "EUR" sondern "' + currency + '". ' \
@@ -520,13 +517,6 @@ with connection.cursor() as cursor_lpz:
                             connection.commit()
 
                     elif punkt.tag == 'dvdspec':
-
-                        #Erscheinungsdatum soll bei dvd nicht gespeichert werden lt. Aufgabenstellung, aber so wuerde es gehen:
-                        #erscheinungsdatum_dvd_roh = [releasedate.text for releasedate in punkt.findall('releasedate')]
-                        #if erscheinungsdatum_dvd_roh is None:
-                        #    erscheinungsdatum_dvd = None
-                        #else:
-                        #    erscheinungsdatum_dvd = erscheinungsdatum_dvd_roh[0]
 
                         format_roh = [format.text for format in punkt.findall('format')]
                         if format_roh is None:
@@ -575,7 +565,7 @@ with connection.cursor() as cursor_lpz:
                 connection.commit()
 
 
-                # Retrieve the maximum beteiligten_id from the DVD_Beteiligte table
+                # hoechste bereits verwendete BeteiligtenID abrufen
                 cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                 max_beteiligten_id = cursor_lpz.fetchone()[0]
 
@@ -589,13 +579,12 @@ with connection.cursor() as cursor_lpz:
                         "/")  # falls in einem Actornamen eig. mehrere mit "/" separiert reingechrieben
 
                     for name in names:
-                        # print(name)
-                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        # Hole hoechste beteiligten_id von BeteiligteTabelle
                         name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_lpz.fetchone()[0]
 
-                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        # setze initiale beteiligten_id auf hoechste beteiligten_id
                         if max_beteiligten_id is None:
                             beteiligten_id = 0
                         else:
@@ -625,7 +614,7 @@ with connection.cursor() as cursor_lpz:
                             connection.commit()
                             print(eigene_fehlernachricht)
 
-                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
+                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_lpz.execute(
                                 "INSERT INTO DVD_Beteiligte (BeteiligtenID, Beteiligtenname) VALUES (%s, %s)",
@@ -646,13 +635,12 @@ with connection.cursor() as cursor_lpz:
                         "/")
 
                     for name in names:
-                        # print(name)
-                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        # Hole hoechste beteiligten_id von BeteiligteTabelle
                         name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_lpz.fetchone()[0]
 
-                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        # setze initiale beteiligten_id auf hoechste beteiligten_id
                         if max_beteiligten_id is None:
                             beteiligten_id = 0
                         else:
@@ -684,7 +672,7 @@ with connection.cursor() as cursor_lpz:
                             connection.commit()
                             print(eigene_fehlernachricht)
 
-                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
+                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_lpz.execute(
                                 "INSERT INTO DVD_Beteiligte (BeteiligtenID, Beteiligtenname) VALUES (%s, %s)",
@@ -705,13 +693,12 @@ with connection.cursor() as cursor_lpz:
                         "/")
 
                     for name in names:
-                        # print(name)
-                        # Hole maximum beteiligten_id von BeteiligteTabelle
+                        # Hole hoechste beteiligten_id von BeteiligteTabelle
                         name = name.lstrip().rstrip()
                         cursor_lpz.execute("SELECT MAX(BeteiligtenID) FROM DVD_Beteiligte;")
                         max_beteiligten_id = cursor_lpz.fetchone()[0]
 
-                        # setze initiale beteiligten_id auf maximumn beteiligten_id
+                        # setze initiale beteiligten_id auf hoechste beteiligten_id
                         if max_beteiligten_id is None:
                             beteiligten_id = 0
                         else:
@@ -743,7 +730,7 @@ with connection.cursor() as cursor_lpz:
                             connection.commit()
                             print(eigene_fehlernachricht)
 
-                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann musst einen neuen Eintrag in BeteiligtenTabelle machen
+                        else:  # Fall: Beteiligtennamen gibt es noch nicht in BeteiligteTabelle, dann einen neuen Eintrag in BeteiligtenTabelle machen
                             beteiligten_id = beteiligten_id + 1
                             cursor_lpz.execute(
                                 "INSERT INTO DVD_Beteiligte (BeteiligtenID, Beteiligtenname) VALUES (%s, %s)",
@@ -758,40 +745,27 @@ with connection.cursor() as cursor_lpz:
                         )
                         connection.commit()
 
-
-
-
-
-
-
-
-
-
-
-
-
-            #INSERTs, die fuer alle Produktarten gleich:
+            #INSERTs, die fuer alle Produktarten gleich sind:
 
             # Suche Zustandsnummer fuer gegebenen Zustand
-            # eig. fuer alle Produktarten gleich
             cursor_lpz.execute(
                 "SELECT Zustandsnummer FROM Zustand WHERE Beschreibung = %s;",
                 (zustand,)
             )
             zustandsnummer_aktuell = cursor_lpz.fetchone()
 
-            # Hole maximum AngebotsID von AngebotTabelle (Analog zu Kuenstlertabelle in der Hinsicht)
+            # Hole hoechste AngebotsID von AngebotTabelle (Analog zu Kuenstlertabelle in der Hinsicht)
             cursor_lpz.execute("SELECT MAX(AngebotsID) FROM Angebot;")
             max_angebot_id_zaehler = cursor_lpz.fetchone()[0]
 
-            # setze initiale angebot_id_zaehler auf maximumn angebot_id_zaehler
+            # setze initiale angebot_id_zaehler auf hoechste angebot_id_zaehler
             if max_angebot_id_zaehler is None:
                 angebot_id_zaehler = 0
             else:
                 angebot_id_zaehler = max_angebot_id_zaehler
 
             # Idee: Check ob es das Angebot in dieser Form schon gibt
-            #  -> Wenn ja, dann "Menge" um eins hoch (uber UPDATE in SQL)
+            #  -> Wenn ja, dann "Menge" um eins hoch (ueber UPDATE in SQL)
             #  -> Wenn nein, dann neues Tupel (mit neuer AngebotsID) in AngebotTabelle
 
             # Check ob es das Angebot in dieser Form schon gibt
@@ -826,8 +800,8 @@ with connection.cursor() as cursor_lpz:
                 )
                 connection.commit()
 
-            # AehnlichkeitTabelle befuellen (fuer alle Arten gleich)
-            # (lexikographisch) kleinere PID ist immer PID1
+            # AehnlichkeitTabelle befuellen
+            # (lexikographisch) kleinere PID ist immer PID1 (asymmetrische Speicherung)
             # aehnliche_produkte_tupelliste  nutzen
             # (aehnlich_pid, aehnlich_titel)
             # aehnliche_produkte_tupelliste
@@ -841,6 +815,7 @@ with connection.cursor() as cursor_lpz:
                 )
                 connection.commit()
 
+                #lexikographisch kleinere pid in "kleiner" speichern, groessere in "groesser"
                 kleiner = 0
                 groesser = 0
                 if str(pid) < str(tupel[0]):
@@ -850,6 +825,8 @@ with connection.cursor() as cursor_lpz:
                     kleiner = tupel[0]
                     groesser = pid
 
+                #Reflexivitaet der Aehnlichkeitsbeziehung wird nicht explizit abgespeichert
+                # -> nur aehnliche Produkte abspeichern, die nicht das aktuelle Produkt selbst sind
                 if kleiner != groesser:
                     cursor_lpz.execute(
                         "INSERT INTO Aehnlichkeit (PID1, PID2) "
@@ -862,7 +839,6 @@ with connection.cursor() as cursor_lpz:
 
         except psycopg2.Error as error: # Fehlernachricht in einer Tabelle loggen
             connection.rollback()
-            #error_message = str(error)  #kurze error message fuer Tabelle
 
             # lange error message fuer Tabelle; ohne Anfang der Fehlermeldung, der immer gleich ist
             traceback_string = str(traceback.format_exc())
@@ -887,12 +863,6 @@ connection.commit()
 #cursor_lpz.close() #Leipzig cursor schliessen um ihn nicht aus Versehen zu verwenden
 
 #----------LEIPZIG ENDE--------------------
-
-
-
-
-
-
 
 #--------------DRESDEN ANFANG---------
 
