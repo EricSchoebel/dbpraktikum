@@ -26,7 +26,7 @@ CREATE TABLE Buch (
   Erscheinungsdatum DATE,
   ISBN VARCHAR(255),
   Verlag VARCHAR(255),
-  FOREIGN KEY (PID) REFERENCES Produkt(PID)
+  FOREIGN KEY (PID) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX seitenzahl_index ON Buch(seitenzahl); /*schnelleres Abgleichen und Sortieren*/
 CREATE INDEX buch_rd_index ON Buch(erscheinungsdatum); /*schnelleres Abgleichen und Sortieren*/
@@ -36,7 +36,7 @@ CREATE TABLE DVD (
   Format VARCHAR(255),
   Laufzeit INT,
   Regioncode VARCHAR(255),
-  FOREIGN KEY (PID) REFERENCES Produkt(PID)
+  FOREIGN KEY (PID) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX laufzeit_index ON DVD(laufzeit); /*schnelleres Abgleichen und Sortieren*/
 
@@ -44,7 +44,7 @@ CREATE TABLE CD (
   PID VARCHAR(20) PRIMARY KEY,
   Label VARCHAR(255),
   Erscheinungsdatum DATE,
-  FOREIGN KEY (PID) REFERENCES Produkt(PID),
+  FOREIGN KEY (PID) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT CD_Kuenstler_PID_fk FOREIGN KEY (PID) REFERENCES Produkt(PID)
 );
 CREATE INDEX CD_rd_index ON CD(erscheinungsdatum); /*schnelleres Abgleichen und Sortieren*/
@@ -60,8 +60,8 @@ CREATE TABLE Buch_Autor (
   PID VARCHAR(20),
   AutorID INT,
   PRIMARY KEY (PID, AutorID),
-  FOREIGN KEY (PID) REFERENCES Buch(PID),
-  FOREIGN KEY (AutorID) REFERENCES Autor(AutorID)
+  FOREIGN KEY (PID) REFERENCES Buch(PID) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (AutorID) REFERENCES Autor(AutorID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE DVD_Beteiligte (
@@ -74,8 +74,8 @@ CREATE TABLE DVD_Beteiligungen (
   BeteiligtenID INT,
   Rolle VARCHAR(255),
   PRIMARY KEY (PID, BeteiligtenID, Rolle),
-  FOREIGN KEY (PID) REFERENCES DVD(PID),
-  FOREIGN KEY (BeteiligtenID) REFERENCES DVD_Beteiligte(BeteiligtenID)
+  FOREIGN KEY (PID) REFERENCES DVD(PID) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (BeteiligtenID) REFERENCES DVD_Beteiligte(BeteiligtenID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Kuenstler (
@@ -88,8 +88,8 @@ CREATE TABLE CD_Kuenstler (
   PID VARCHAR(20),
   KuenstlerID INT,
   PRIMARY KEY (PID, KuenstlerID),
-  FOREIGN KEY (PID) REFERENCES CD(PID),
-  FOREIGN KEY (KuenstlerID) REFERENCES Kuenstler(KuenstlerID)
+  FOREIGN KEY (PID) REFERENCES CD(PID) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (KuenstlerID) REFERENCES Kuenstler(KuenstlerID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 
@@ -97,14 +97,14 @@ CREATE TABLE Titel (
   PID VARCHAR(20),
   Titelname VARCHAR(255),
   PRIMARY KEY(PID, Titelname),
-  FOREIGN KEY (PID) REFERENCES CD(PID)
+  FOREIGN KEY (PID) REFERENCES CD(PID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Kategorie (
   KatID INT PRIMARY KEY,
   Kategoriename VARCHAR(255),
   Oberkategorie INT,
-  FOREIGN KEY (Oberkategorie) REFERENCES Kategorie(KatID)
+  FOREIGN KEY (Oberkategorie) REFERENCES Kategorie(KatID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 /* Index auf Oberkategorie ? -> viele Dopplungen, aber viel Filtern*/ 
 
@@ -112,8 +112,8 @@ CREATE TABLE Produkt_Kategorie (
   KatID INT,
   PID VARCHAR(20),
   PRIMARY KEY (KatID, PID),
-  FOREIGN KEY (KatID) REFERENCES Kategorie(KatID),
-  FOREIGN KEY (PID) REFERENCES Produkt(PID)
+  FOREIGN KEY (KatID) REFERENCES Kategorie(KatID) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (PID) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Filiale (
@@ -127,7 +127,7 @@ CREATE TABLE Anschrift (
   Strasse VARCHAR(255),
   Hausnummer VARCHAR(255),
   PLZ VARCHAR(255),
-  FOREIGN KEY (FID) REFERENCES Filiale(FID),
+  FOREIGN KEY (FID) REFERENCES Filiale(FID) ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT Anschrift_FID_unique UNIQUE (FID)
 );
 
@@ -143,9 +143,9 @@ CREATE TABLE Angebot (
 	Preis DECIMAL(10,2),
 	Zustandsnummer INT,
 	Menge INT,
-	FOREIGN KEY (PID) REFERENCES Produkt(PID),
-	FOREIGN KEY (FID) REFERENCES Filiale(FID),
-	FOREIGN KEY (Zustandsnummer) REFERENCES Zustand(Zustandsnummer),
+	FOREIGN KEY (PID) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (FID) REFERENCES Filiale(FID) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (Zustandsnummer) REFERENCES Zustand(Zustandsnummer) ON UPDATE CASCADE ON DELETE CASCADE,
 	CONSTRAINT unique_offer_constraint UNIQUE (PID, FID, Preis, Zustandsnummer)
 );
 CREATE INDEX preis_index ON Angebot(Preis); /*schnelleres Abgleichen und Sortieren*/
@@ -161,7 +161,7 @@ CREATE TABLE Konto (
     	KundenID varchar(100),
 Kontonummer INT,
     	PRIMARY KEY(KundenID, Kontonummer),
-	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID)
+	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Lieferadresse (
@@ -169,7 +169,7 @@ CREATE TABLE Lieferadresse (
 	Strasse VARCHAR(100),
 	Hausnummer VARCHAR(10),
 	PLZ VARCHAR(10),
-	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID)
+	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Kundenrezension (
@@ -181,8 +181,8 @@ CREATE TABLE Kundenrezension (
 	Content TEXT,
 	Reviewdate DATE,
 	PRIMARY KEY (KundenID, PID),
-	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID),
-	FOREIGN KEY (PID) REFERENCES Produkt(PID)
+	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (PID) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX rezension_rd_index ON Kundenrezension(Reviewdate); /*schnelles Abgleichen und Sortieren*/
 CREATE INDEX helpful_index ON Kundenrezension(Helpful); /*schnelles Abgleichen und Sortieren*/
@@ -210,8 +210,8 @@ CREATE TABLE Kauf (
 	Menge INT,
 	Zeitpunkt TIMESTAMP,
 	PRIMARY KEY (KundenID, AngebotsID, Zeitpunkt),
-	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID),
-	FOREIGN KEY (AngebotsID) REFERENCES Angebot(AngebotsID)
+	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (AngebotsID) REFERENCES Angebot(AngebotsID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE OR REPLACE FUNCTION compare_strings_less_than(text, text)
@@ -226,10 +226,9 @@ LANGUAGE plpgsql;
 CREATE TABLE Aehnlichkeit (
 	PID1 VARCHAR(20),
 	PID2 VARCHAR(20),
-	/* Aehnlichkeitswert DECIMAL(10,2), */
 	PRIMARY KEY (PID1, PID2),
-	FOREIGN KEY (PID1) REFERENCES Produkt(PID),
-	FOREIGN KEY (PID2) REFERENCES Produkt(PID),
+	FOREIGN KEY (PID1) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (PID2) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE,
 	CHECK (compare_strings_less_than(PID1, PID2))
 );
 
