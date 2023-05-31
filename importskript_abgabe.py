@@ -748,6 +748,14 @@ with connection.cursor() as cursor_lpz:
                         )
                         connection.commit()
 
+            else:
+                print("Produktart ist weder 'Music', 'Book' noch 'DVD'")
+                eigene_fehlernachricht = 'ERROR: Produktart ist weder "Music", "Book" noch "DVD" bei PID: ' + pid
+                cursor_lpz.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                       (eigene_fehlernachricht,))
+                connection.commit()
+                continue
+
             # INSERTs, die fuer alle Produktarten gleich sind:
 
             # Suche Zustandsnummer fuer gegebenen Zustand
@@ -1622,6 +1630,13 @@ with connection.cursor() as cursor_dresden:
                         )
                         connection.commit()
 
+            else:
+                print("Produktart ist weder 'Music', 'Book' noch 'DVD'")
+                eigene_fehlernachricht = 'ERROR: Produktart ist weder "Music", "Book" noch "DVD" bei PID: ' + pid
+                cursor_dresden.execute("INSERT INTO FehlerLog (FehlerNachricht) VALUES (%s)",
+                                       (eigene_fehlernachricht,))
+                connection.commit()
+                continue
             # INSERTs, die fuer alle Produktarten gleich sind:
 
             # Suche Zustandsnummer fuer gegebenen Zustand

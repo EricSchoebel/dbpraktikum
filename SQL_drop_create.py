@@ -140,7 +140,7 @@ CREATE TABLE Angebot (
 	AngebotsID INT PRIMARY KEY,
 	PID VARCHAR(20),
 	FID INT,
-	Preis DECIMAL(10,2),
+	Preis DECIMAL(10,2) CHECK (Preis >= 0), /* wie in Testat besprochen */
 	Zustandsnummer INT,
 	Menge INT,
 	FOREIGN KEY (PID) REFERENCES Produkt(PID) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -159,7 +159,7 @@ CREATE TABLE Kunde (
 
 CREATE TABLE Konto (
     	KundenID varchar(100),
-Kontonummer INT,
+        Kontonummer INT,
     	PRIMARY KEY(KundenID, Kontonummer),
 	FOREIGN KEY (KundenID) REFERENCES Kunde(KundenID) ON UPDATE CASCADE ON DELETE CASCADE
 );
