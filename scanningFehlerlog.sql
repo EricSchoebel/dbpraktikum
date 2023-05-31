@@ -23,6 +23,9 @@ where fehlernachricht LIKE '%CheckViolation%' ORDER BY fehlernachricht ASC;
 select * from fehlerlog
 where fehlernachricht LIKE '%ERROR%' ORDER BY fehlernachricht ASC;
 
+--d'Agostino etc. sind trotzdem drin, auch wenn sie bei Error erscheinen:
+select * from kuenstler
+where kuenstlername LIKE '%Agostino%'
 
 
 
