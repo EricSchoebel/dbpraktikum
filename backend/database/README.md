@@ -1,5 +1,5 @@
 ## Verwendung von PostgreSQL mittels Docker
-# IN ANALOGIE AN DBS II  (angepasst Eric). Hier bei DBpraktikum ein paar Nahmen und Ports geändert.
+# IN ANALOGIE AN DBS II  (angepasst Eric). Hier bei DBpraktikum ein paar Namen und Ports geändert.
 
 1. Installieren Sie die Programme `docker` und `docker-compose`
 2. Starten Sie den Postgres-Server durch Öffnen einen Terminals in diesem Ordner und ausführen des Befehls `docker-compose up -d`

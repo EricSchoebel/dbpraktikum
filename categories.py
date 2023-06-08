@@ -5,6 +5,7 @@ import psycopg2 #Psycopg is the most popular PostgreSQL database adapter for Pyt
 import xml.etree.ElementTree as ET
 #import os
 
+#connection zur Datenbank (Postgres-Docker-Container) aufbauen
 try:
     connection = psycopg2.connect(
         host="localhost",
@@ -22,13 +23,11 @@ except psycopg2.Error as error:
 tree = ET.parse("backend\data\categories.xml")
 root = tree.getroot()
 
-
-
 #fuehrende Zahl zeigt an, ob es Haupt- oder Unterkategorie ist
 #hauptkategorien beginnen mit 1
 #unterkategorien beginnen mit 2
 
-id_zaehler = 0
+kategorie_id_zaehler = 0
 
 #rekursive Funktionsdefinition (für einen Hauptkategoriestrang)
 def grabeTiefer(oberkategorie, ober_id):
@@ -50,9 +49,9 @@ def grabeTiefer(oberkategorie, ober_id):
             )
 
         if unter.tag == 'category':
-            global id_zaehler
-            id_zaehler = id_zaehler + 1
-            new_id = int("2" + ( str(id_zaehler)) )
+            global kategorie_id_zaehler
+            kategorie_id_zaehler = kategorie_id_zaehler + 1
+            new_id = int("2" + (str(kategorie_id_zaehler)))
             # katgorie reinschreiben in tabelle kategorie
             # weitergraben
             cursor.execute(
@@ -63,7 +62,7 @@ def grabeTiefer(oberkategorie, ober_id):
 
 
 
-#Tabellen leeren vor erneutem Einfügen
+#Tabellen leeren vor erneutem Einfuegen
 with connection.cursor() as cleaner:
     cleaner.execute("DELETE FROM Produkt_Kategorie; DELETE FROM Kategorie; DELETE FROM Produkt;")
 connection.commit()
@@ -72,9 +71,9 @@ connection.commit()
 #Einfügen
 with connection.cursor() as cursor:
     for hauptkategorie in root:
-        id_zaehler = id_zaehler + 1  #hier musst nicht "global setzen weil es keine Funktion ist
+        kategorie_id_zaehler = kategorie_id_zaehler + 1  #hier musst nicht "global setzen weil es keine Funktion ist
         #print(hauptkategorie.text)
-        actual_id = int("1"+str(id_zaehler))
+        actual_id = int("1" + str(kategorie_id_zaehler))
         #print(id_zaehler)
         cursor.execute(
              "INSERT INTO Kategorie (KatID, Kategoriename, Oberkategorie) VALUES (%s, %s, %s);",
@@ -83,7 +82,7 @@ with connection.cursor() as cursor:
         grabeTiefer(hauptkategorie, actual_id)
 
 
-# Commit the changes and close the connection
+# Aenderungen commiten und Connection schliessen
 connection.commit()
 connection.close()
 
@@ -116,7 +115,40 @@ CREATE TABLE Produkt (
 
 """
 
+"""
+Z.B. für die Hauptkategorie "Formate" (katid=13) kriegst du so Kategori selbst + alle Unterkategorien aus der KategorieTabelle:
 
+WITH RECURSIVE subcategories AS (
+  SELECT KatID, Kategoriename, Oberkategorie
+  FROM Kategorie
+  WHERE KatID = '13'  -- Specify the ID of the category you want to retrieve subcategories for
+
+  UNION ALL
+
+  SELECT k.KatID, k.Kategoriename, k.Oberkategorie
+  FROM Kategorie k
+  INNER JOIN subcategories s ON s.KatID = k.Oberkategorie
+)
+SELECT KatID, Kategoriename, Oberkategorie
+FROM subcategories;
+
+
+Geht auch beginnend für Zwischenebenen, z.B: für "Box-Sets" (katid=24):
+WITH RECURSIVE subcategories AS (
+  SELECT KatID, Kategoriename, Oberkategorie
+  FROM Kategorie
+  WHERE KatID = '24'  -- Specify the ID of the category you want to retrieve subcategories for
+
+  UNION ALL
+
+  SELECT k.KatID, k.Kategoriename, k.Oberkategorie
+  FROM Kategorie k
+  INNER JOIN subcategories s ON s.KatID = k.Oberkategorie
+)
+SELECT KatID, Kategoriename, Oberkategorie
+FROM subcategories;
+Bei einer spezifischen Abfrage für igrendwas müssen wir dann bei einer anderen Abfrage meiner Meinung nach nur im where teil IN.(...) nutzen statt spezifische id
+"""
 
 
 #current_directory = os.getcwd()
