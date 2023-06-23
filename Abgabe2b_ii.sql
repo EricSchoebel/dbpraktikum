@@ -5,7 +5,7 @@ Abgabe Teil 2b ii - Datei mit Anweisungen zur Integritätssicherung
 -- Ausschnitt der relevanten Tabellen aus Datenbank-Schema:
 
 CREATE TABLE Produkt (
-  PID VARCHAR(20) PRIMARY KEY CHECK (LENGTH(PID) = 10),
+  PID VARCHAR(20) PRIMARY KEY,
   Titel VARCHAR(255),
   Rating DECIMAL(2,1),
   Verkaufsrang INT,
@@ -41,9 +41,11 @@ Damit wird implizit auch der Wertebereich für das Rating in der Produkt-Tabelle
 Die letztlich bestehende Verbindung der Tabellenwerte wurde über Trigger realisiert. 
 Im speziellen wurde eine Funktion definiert, die bei Auslösung der eigentlichen Trigger ausgeführt wird.
 Die Auslösung erfolgt sowohl nach dem INSERT, UPDATE als auch DELETE in der Kundenrezension-Tabelle.
+Da der DELETE-Fall einer anderen Logik bedarf, wurde dafür eine andere Funktion angelegt.
 Die Realisierung geschah wie folgt:
 */
 
+--Funktion für INSERT und UPDATE
 CREATE OR REPLACE FUNCTION UpdateRatingFunction()
 RETURNS TRIGGER AS
 $BODY$
@@ -56,6 +58,8 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 
+--ACHTUNG: funktionsdefinition für delete case noch einfuegen
+
 CREATE TRIGGER UpdateRating_Insert
 AFTER INSERT ON Kundenrezension
 FOR EACH ROW
@@ -66,9 +70,11 @@ AFTER UPDATE ON Kundenrezension
 FOR EACH ROW
 EXECUTE FUNCTION UpdateRatingFunction();
 
+
+--ACHTUNG hier wird eine andere Fkt aufgerfuen
 CREATE TRIGGER UpdateRating_Delete
 AFTER DELETE ON Kundenrezension
 FOR EACH ROW
-EXECUTE FUNCTION UpdateRatingFunction();
+EXECUTE FUNCTION DeleteCaseUpdateRatingFunction();
 
 

@@ -10,7 +10,7 @@ sql_creates = '''CREATE TABLE FehlerLog (
 
 
 CREATE TABLE Produkt (
-  PID VARCHAR(20) PRIMARY KEY CHECK (LENGTH(PID) = 10),
+  PID VARCHAR(20) PRIMARY KEY,
   Titel VARCHAR(255),
   Rating DECIMAL(2,1),
   Verkaufsrang INT,
@@ -188,6 +188,7 @@ CREATE INDEX rezension_rd_index ON Kundenrezension(Reviewdate); /*schnelles Abgl
 CREATE INDEX helpful_index ON Kundenrezension(Helpful); /*schnelles Abgleichen und Sortieren*/
 CREATE INDEX punkte_index ON Kundenrezension(Punkte); /*schnelles Abgleichen und Sortieren*/
 
+--Funktion fuer INSERT und UPDATE Fälle
 CREATE OR REPLACE FUNCTION UpdateRatingFunction()
 RETURNS TRIGGER AS
 $BODY$
@@ -196,6 +197,36 @@ BEGIN
 	SET Rating = (SELECT AVG(Punkte) FROM Kundenrezension WHERE PID = NEW.PID)
 	WHERE PID = NEW.PID;
 	RETURN NEW;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+--Funktion fuer DELETE Fälle
+CREATE OR REPLACE FUNCTION DeleteCaseUpdateRatingFunction()
+RETURNS TRIGGER AS 
+$BODY$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Kundenrezension
+        WHERE PID = OLD.PID
+          AND KundenID <> OLD.KundenID
+    ) THEN
+        UPDATE Produkt
+        SET Rating = NULL -- oder setzen Sie hier den gewünschten Standardwert
+        WHERE PID = OLD.PID;
+    ELSE
+        UPDATE Produkt
+        SET Rating = (
+            SELECT AVG(Punkte)
+            FROM Kundenrezension
+            WHERE PID = OLD.PID
+              AND KundenID <> OLD.KundenID
+        )
+        WHERE PID = OLD.PID;
+    END IF;
+    
+    RETURN NULL; 
 END;
 $BODY$
 LANGUAGE plpgsql;
@@ -213,7 +244,7 @@ EXECUTE FUNCTION UpdateRatingFunction();
 CREATE TRIGGER UpdateRating_Delete
 AFTER DELETE ON Kundenrezension
 FOR EACH ROW
-EXECUTE FUNCTION UpdateRatingFunction();
+EXECUTE FUNCTION DeleteCaseUpdateRatingFunction();
 
 CREATE TABLE Kauf (
 	AngebotsID INT,
