@@ -10,7 +10,7 @@ sql_creates = '''CREATE TABLE FehlerLog (
 
 
 CREATE TABLE Produkt (
-  PID VARCHAR(20) PRIMARY KEY,
+  PID VARCHAR(20) PRIMARY KEY CHECK (LENGTH(PID) = 10),
   Titel VARCHAR(255),
   Rating DECIMAL(2,1),
   Verkaufsrang INT,
@@ -189,17 +189,16 @@ CREATE INDEX helpful_index ON Kundenrezension(Helpful); /*schnelles Abgleichen u
 CREATE INDEX punkte_index ON Kundenrezension(Punkte); /*schnelles Abgleichen und Sortieren*/
 
 CREATE OR REPLACE FUNCTION UpdateRatingFunction()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS
 $BODY$
 BEGIN
 	UPDATE Produkt
 	SET Rating = (SELECT AVG(Punkte) FROM Kundenrezension WHERE PID = NEW.PID)
 	WHERE PID = NEW.PID;
-    
 	RETURN NEW;
 END;
 $BODY$
-$$ LANGUAGE plpgsql;
+LANGUAGE plpgsql;
 
 CREATE TRIGGER UpdateRating_Insert
 AFTER INSERT ON Kundenrezension

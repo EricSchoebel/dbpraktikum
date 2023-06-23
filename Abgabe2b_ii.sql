@@ -5,7 +5,7 @@ Abgabe Teil 2b ii - Datei mit Anweisungen zur Integritätssicherung
 -- Ausschnitt der relevanten Tabellen aus Datenbank-Schema:
 
 CREATE TABLE Produkt (
-  PID VARCHAR(20) PRIMARY KEY,
+  PID VARCHAR(20) PRIMARY KEY CHECK (LENGTH(PID) = 10),
   Titel VARCHAR(255),
   Rating DECIMAL(2,1),
   Verkaufsrang INT,
@@ -45,7 +45,7 @@ Die Realisierung geschah wie folgt:
 */
 
 CREATE OR REPLACE FUNCTION UpdateRatingFunction()
-RETURNS TRIGGER AS 
+RETURNS TRIGGER AS
 $BODY$
 BEGIN
 	UPDATE Produkt
@@ -54,7 +54,7 @@ BEGIN
 	RETURN NEW;
 END;
 $BODY$
-$$ LANGUAGE plpgsql;
+LANGUAGE plpgsql;
 
 CREATE TRIGGER UpdateRating_Insert
 AFTER INSERT ON Kundenrezension
