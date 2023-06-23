@@ -190,6 +190,7 @@ CREATE INDEX punkte_index ON Kundenrezension(Punkte); /*schnelles Abgleichen und
 
 CREATE OR REPLACE FUNCTION UpdateRatingFunction()
 RETURNS TRIGGER AS $$
+$BODY$
 BEGIN
 	UPDATE Produkt
 	SET Rating = (SELECT AVG(Punkte) FROM Kundenrezension WHERE PID = NEW.PID)
@@ -197,10 +198,21 @@ BEGIN
     
 	RETURN NEW;
 END;
+$BODY$
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER UpdateRating
+CREATE TRIGGER UpdateRating_Insert
 AFTER INSERT ON Kundenrezension
+FOR EACH ROW
+EXECUTE FUNCTION UpdateRatingFunction();
+
+CREATE TRIGGER UpdateRating_Update
+AFTER UPDATE ON Kundenrezension
+FOR EACH ROW
+EXECUTE FUNCTION UpdateRatingFunction();
+
+CREATE TRIGGER UpdateRating_Delete
+AFTER DELETE ON Kundenrezension
 FOR EACH ROW
 EXECUTE FUNCTION UpdateRatingFunction();
 
