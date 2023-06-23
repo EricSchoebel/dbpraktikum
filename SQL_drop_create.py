@@ -225,7 +225,6 @@ BEGIN
         )
         WHERE PID = OLD.PID;
     END IF;
-    
     RETURN NULL; 
 END;
 $BODY$
