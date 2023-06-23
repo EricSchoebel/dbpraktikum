@@ -4,6 +4,7 @@ Abgabe Teil 2b ii - Datei mit Anweisungen zur Integritätssicherung
 
 -- Ausschnitt der relevanten Tabellen aus Datenbank-Schema:
 
+/*
 CREATE TABLE Produkt (
   PID VARCHAR(20) PRIMARY KEY,
   Titel VARCHAR(255),
@@ -28,6 +29,7 @@ CREATE TABLE Kundenrezension (
 CREATE INDEX rezension_rd_index ON Kundenrezension(Reviewdate);
 CREATE INDEX helpful_index ON Kundenrezension(Helpful);
 CREATE INDEX punkte_index ON Kundenrezension(Punkte);
+*/
 
 /* Erklärung:
 In Produkt-Tabelle gibt der Datentyp "DECIMAL(2,1)" bei Rating an, dass das Rating eine Dezimalzahl ist,

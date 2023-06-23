@@ -1,6 +1,7 @@
 /*
 Abgabe Teil 2b i - Datei mit SQL-Statements für ein ausgewähltes Beispiel
-(Hinweis: die Trigger mit Funktion stehen in "Abgabe2b_ii.sql")
+(Hinweis: die Trigger mit Funktion stehen in "Abgabe2b_ii.sql",
+ Screenshots für den kompletten Testfall im Ordner "Screenshots_2b_i")
 Es wird eine Test-Kundenrezension verfasst, um zu prüfen ob sich das entsprechende Rating für dieses Produkt anpasst.
 
 Bezug wird auf das folgendes Produkt aus der Produkt-Tabelle genommen (Stand vor dem Test):
@@ -38,6 +39,7 @@ e) DELETE-Fall3 (ALLE Kundenrezensionen zu diesem Produkt werden gelöscht):
 */
 
 --vor dem Test:
+SELECT * FROM Kundenrezension WHERE PID = '3473530190';
 SELECT pid, titel, rating FROM Produkt WHERE PID = '3473530190';
 /* Rating ist 4.5 */
 
