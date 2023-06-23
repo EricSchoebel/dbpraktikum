@@ -211,11 +211,11 @@ BEGIN
         FROM Kundenrezension
         WHERE PID = OLD.PID
           AND KundenID <> OLD.KundenID
-    ) THEN
+    ) THEN --wenn nach dem Löschen keine Rezensionen mehr, dann NULL setzen
         UPDATE Produkt
-        SET Rating = NULL -- oder setzen Sie hier den gewünschten Standardwert
+        SET Rating = NULL 
         WHERE PID = OLD.PID;
-    ELSE
+    ELSE --wenn nach dem Löschen noch Rezension(en) da, dann auf Basis derer Rating-Berechnung machen
         UPDATE Produkt
         SET Rating = (
             SELECT AVG(Punkte)
