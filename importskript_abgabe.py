@@ -1891,7 +1891,7 @@ with connection.cursor() as aufraeumer:
     aufraeumer.execute(
         "DELETE FROM Produkt WHERE LENGTH(PID) <> 10;"
     )
-connection.commit()
+    connection.commit()
     aufraeumer.execute(
         "DELETE FROM Produkt p WHERE p.pid LIKE '%?%';"
     )
