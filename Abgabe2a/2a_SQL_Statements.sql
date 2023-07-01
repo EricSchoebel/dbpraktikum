@@ -62,8 +62,10 @@ ORDER BY COUNT(*) DESC
 SELECT DISTINCT a.autorname FROM autor a
 WHERE a.autorid IN (
     SELECT ba.autorid FROM buch_autor ba
-    INTERSECT SELECT ck.kuenstlerid FROM cd_kuenstler ck
-    INTERSECT SELECT dvdb.beteiligtenid FROM dvd_beteiligte dvdb
+    INTERSECT
+	( SELECT ck.kuenstlerid FROM cd_kuenstler ck
+      UNION SELECT dvdb.beteiligtenid FROM dvd_beteiligte dvdb
+	)
     ) 
 ORDER BY a.autorname ASC
 
