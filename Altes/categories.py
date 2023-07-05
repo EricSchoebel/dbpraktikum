@@ -20,7 +20,7 @@ except psycopg2.Error as error:
 
 
 # Etree-package initialisieren
-tree = ET.parse("backend\data\categories.xml")
+tree = ET.parse("../backend/data/categories.xml")
 root = tree.getroot()
 
 #fuehrende Zahl zeigt an, ob es Haupt- oder Unterkategorie ist

@@ -25,7 +25,7 @@ except psycopg2.Error as error:
 #----------LEIPZIG TEIL--------------------
 
 # Etree-package initialisieren
-tree_two = ET.parse("backend\data\leipzig_transformed.xml")
+tree_two = ET.parse("../backend/data/leipzig_transformed.xml")
 root_two = tree_two.getroot()
 
 #Tabellen leeren vor erneutem Einfügen

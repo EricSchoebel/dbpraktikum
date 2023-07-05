@@ -188,21 +188,62 @@ CREATE INDEX rezension_rd_index ON Kundenrezension(Reviewdate); /*schnelles Abgl
 CREATE INDEX helpful_index ON Kundenrezension(Helpful); /*schnelles Abgleichen und Sortieren*/
 CREATE INDEX punkte_index ON Kundenrezension(Punkte); /*schnelles Abgleichen und Sortieren*/
 
+--Funktion fuer INSERT und UPDATE Fälle
 CREATE OR REPLACE FUNCTION UpdateRatingFunction()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS
+$BODY$
 BEGIN
 	UPDATE Produkt
 	SET Rating = (SELECT AVG(Punkte) FROM Kundenrezension WHERE PID = NEW.PID)
 	WHERE PID = NEW.PID;
-    
 	RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$BODY$
+LANGUAGE plpgsql;
 
-CREATE TRIGGER UpdateRating
+--Funktion fuer DELETE Fälle
+CREATE OR REPLACE FUNCTION DeleteCaseUpdateRatingFunction()
+RETURNS TRIGGER AS 
+$BODY$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Kundenrezension
+        WHERE PID = OLD.PID
+          AND KundenID <> OLD.KundenID
+    ) THEN --wenn nach dem Löschen keine Rezensionen mehr, dann NULL setzen
+        UPDATE Produkt
+        SET Rating = NULL 
+        WHERE PID = OLD.PID;
+    ELSE --wenn nach dem Löschen noch Rezension(en) da, dann auf Basis derer Rating-Berechnung machen
+        UPDATE Produkt
+        SET Rating = (
+            SELECT AVG(Punkte)
+            FROM Kundenrezension
+            WHERE PID = OLD.PID
+              AND KundenID <> OLD.KundenID
+        )
+        WHERE PID = OLD.PID;
+    END IF;
+    RETURN NULL; 
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER UpdateRating_Insert
 AFTER INSERT ON Kundenrezension
 FOR EACH ROW
 EXECUTE FUNCTION UpdateRatingFunction();
+
+CREATE TRIGGER UpdateRating_Update
+AFTER UPDATE ON Kundenrezension
+FOR EACH ROW
+EXECUTE FUNCTION UpdateRatingFunction();
+
+CREATE TRIGGER UpdateRating_Delete
+AFTER DELETE ON Kundenrezension
+FOR EACH ROW
+EXECUTE FUNCTION DeleteCaseUpdateRatingFunction();
 
 CREATE TABLE Kauf (
 	AngebotsID INT,

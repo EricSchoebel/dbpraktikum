@@ -1886,4 +1886,15 @@ connection.commit()
 
 # ---------KATEGORIEN ENDE-------------------
 
+#letztes Aufräumen
+with connection.cursor() as aufraeumer:
+    aufraeumer.execute(
+        "DELETE FROM Produkt WHERE LENGTH(PID) <> 10;"
+    )
+    connection.commit()
+    aufraeumer.execute(
+        "DELETE FROM Produkt p WHERE p.pid LIKE '%?%';"
+    )
+connection.commit()
+
 connection.close()
