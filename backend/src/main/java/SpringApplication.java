@@ -1,5 +1,3 @@
-package execution;
-
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
