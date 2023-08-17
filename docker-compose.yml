@@ -3,12 +3,12 @@ version: '3'
 services:
   postgres:
     image: postgres
-    hostname: 'dbprak_postgres.container'
+    hostname: 'dbprak_postgres.container' #bei der pg admin connection
     container_name: 'dbprak_postgres'
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=dbprak_postgres
-      - POSTGRES_PASSWORD=dbprak_postgres
+      - POSTGRES_USER=dbprak_postgres #bei der pg admin connection
+      - POSTGRES_PASSWORD=dbprak_postgres #bei der pg admin connection
       - POSTGRES_DB=dbprak_postgres
     ports:
       - "6432:5432" #bei pg admin connection dann scheinbar 5432 auswaehlen?
