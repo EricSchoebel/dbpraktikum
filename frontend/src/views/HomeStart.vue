@@ -2,22 +2,21 @@
   <div class="container">
           <v-row class="ma-5">
            <v-col>
-               <h2>Willkommen zu MIRA!</h2>
+               <h2>Herzlich Willkommen!</h2>
                <div class="spacer"></div>
-               <h3>Lassen Sie sich von der Macht des maschinellen Lernens begeistern und nutzen Sie dieses KI-Analysetool, um Leipzig aus einem neuen Blickwinkel zu entdecken. 
-                Vergleichen Sie die 63 Ortsteile der Stadt hinsichtlich 12 Kategorien mit realen Daten für das Jahr 2021 und erkennen Sie spannende Zusammenhänge auf einfache Art!</h3>
+               <h3>Über die Reiter auf der linken Seite, gelangen Sie zur gewünschten Thematik zur Datenbankkommunikation!</h3>
            </v-col>
          </v-row>
 
   <main>
     <div class="image-container">
       <img
-        :src="require('@/assets/NeuesRathausDrei.jpg')"
-        alt="Foto der Stadt Leipzig"
+        :src="require('@/assets/databasepic.jpg')"
+        alt=" "
         class="image"
       >
     </div>
-    <div class="caption">Foto: © Stadt Leipzig</div>
+    <div class="caption"></div>
 
   </main>
   

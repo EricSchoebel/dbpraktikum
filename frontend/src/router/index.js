@@ -1,8 +1,8 @@
 import { createWebHistory, createRouter } from "vue-router"
 import HomeStart from "@/views/HomeStart"
-import WerteVergleich from "@/views/WerteVergleich"
-import ClusteringHere from "@/views/ClusteringHere"
-import AnomalieErkennung from "@/views/AnomalieErkennung"
+import ProDukte from "@/views/ProDukte"
+import KateGorien from "@/views/KateGorien"
+import ReViews from "@/views/ReViews"
 
 const routes = [
     {
@@ -11,22 +11,22 @@ const routes = [
         component: HomeStart, //it's called "component" here but it is actually in views
     },
     {
-        path: "/Wertevergleich",
-        name: "Wertevergleich",
-        component: WerteVergleich,
-        alias: "/Wertevergleich",
+        path: "/Produkte",
+        name: "Produkte",
+        component: ProDukte,
+        alias: "/Produkte",
     },
     {
-        path: "/Clustering",
-        name: "Clustering",
-        component: ClusteringHere,
-        alias: "/Clustering",
+        path: "/Kategorien",
+        name: "Kategorien",
+        component: KateGorien,
+        alias: "/Kategorien",
     },
     {
-        path: "/Anomalieerkennung",
-        name: "Anomalieerkennung",
-        component: AnomalieErkennung,
-        alias: "/Anomalieerkennung",
+        path: "/Reviews",
+        name: "Reviews",
+        component: ReViews,
+        alias: "/Reviews",
     },
     {
         path: "/:pathMatch(.*)*",

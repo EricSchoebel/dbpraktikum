@@ -18,16 +18,16 @@
             Startseite
           </v-tab>
 
-          <v-tab to="/Wertevergleich" value="one" :prepend-icon="(tab === 'one') ? 'mdi-chart-areaspline': 'mdi-chart-areaspline'" :color="(tab === 'one') ? 'default': 'default'">
-            Wertevergleich
+          <v-tab to="/Produkte" value="one" :prepend-icon="(tab === 'one') ? 'mdi-chart-areaspline': 'mdi-chart-areaspline'" :color="(tab === 'one') ? 'default': 'default'">
+            Produkte
           </v-tab>
 
-          <v-tab to="/Clustering" value="two" :prepend-icon="(tab === 'two') ? 'mdi-chart-scatter-plot': 'mdi-chart-scatter-plot'" :color="(tab === 'two') ? 'default': 'default'">
-            Clustering
+          <v-tab to="/Kategorien" value="two" :prepend-icon="(tab === 'two') ? 'mdi-chart-scatter-plot': 'mdi-chart-scatter-plot'" :color="(tab === 'two') ? 'default': 'default'">
+            Kategorien
           </v-tab>
 
-          <v-tab to="/Anomalieerkennung" value="three" :prepend-icon="(tab === 'three') ? 'mdi-magnify': 'mdi-magnify'" :color="(tab === 'three') ? 'default': 'default'">
-            Anomalieerkennung
+          <v-tab to="/Reviews" value="three" :prepend-icon="(tab === 'three') ? 'mdi-magnify': 'mdi-magnify'" :color="(tab === 'three') ? 'default': 'default'">
+            Reviews
           </v-tab>
           <v-divider></v-divider>
       
@@ -40,7 +40,7 @@
     <v-app-bar>
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>MIRA - das KI-Analysetool für die Stadt Leipzig</v-toolbar-title>
+      <v-toolbar-title>Datenbank-Kommunikation per GUI</v-toolbar-title>
     </v-app-bar>
 
     <v-main>
