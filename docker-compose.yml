@@ -35,6 +35,15 @@ services:
     networks:
       - dbprak_postgres
 
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: dbprak_frontend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
 volumes:
   postgres-data:
   pgadmin:
