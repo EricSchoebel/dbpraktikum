@@ -4,7 +4,7 @@
            <v-col>
                <h2>Herzlich Willkommen!</h2>
                <div class="spacer"></div>
-               <h3>Über die Reiter auf der linken Seite, gelangen Sie zur gewünschten Thematik zur Datenbankkommunikation!</h3>
+               <h3>Über die Reiter auf der linken Seite gelangen Sie zur gewünschten Thematik zur Datenbankkommunikation!</h3>
            </v-col>
          </v-row>
 
