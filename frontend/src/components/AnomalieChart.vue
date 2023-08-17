@@ -105,7 +105,7 @@
                             'Zentrum-Nord', 'Zentrum-Nordwest', 'Zentrum-Ost', 'Zentrum-Süd',
                             'Zentrum-Südost', 'Zentrum-West']
 
-        //put API-Data into variables 
+        //put api-Data into variables
         for(b in newData){
           Altenquote.push(newData[b].Altenquote)
           DurchschnittlicheHaushaltsgröße.push(newData[b].DurchschnittlicheHaushaltsgröße)
@@ -161,7 +161,7 @@
 
       },
       
-      //lädt die Daten von der API
+      //lädt die Daten von der api
       async loadData(){
         this.loaded = false
         try {

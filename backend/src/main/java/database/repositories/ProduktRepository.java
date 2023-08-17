@@ -24,8 +24,8 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     List<ProduktEntity> findAllByPid(String pid);
 
     // nicht zu verwendendes Äquivalent:
-    // @Query("SELECT p FROM ProduktEntity p WHERE p.pid = :pid")
-    // List<ProduktEntity> findProductsByPid(@Param("pid") String pid);
+    //@Query("SELECT p FROM ProduktEntity p WHERE p.pid = :pid")
+    //List<ProduktEntity> findProductsByPid(@Param("pid") String pid);
 
 
 }

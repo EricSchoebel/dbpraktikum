@@ -90,8 +90,8 @@ export default {
             const ortsteileBinaryList = ortsteillist_standard.map(u => desired_ortsteile.includes(u) ? 1 : 0);
             let ortsteileBinaryString = ortsteileBinaryList.join('');
 
-            /* Idee: Hier wird API-Call nur durch Auswahl von Ortsteilen beeinflusst.
-             Bei Clustering wird bspw. mit Auswahl von Ortsteilen, Kategorien o. ä. der API-Call beeinflusst.
+            /* Idee: Hier wird api-Call nur durch Auswahl von Ortsteilen beeinflusst.
+             Bei Clustering wird bspw. mit Auswahl von Ortsteilen, Kategorien o. ä. der api-Call beeinflusst.
               */   
             this.chartData =await (await fetch(
               "http://127.0.0.1:5000/get/specificOrtsteileData?"
@@ -143,7 +143,7 @@ export default {
                           'Zentrum-Südost', 'Zentrum-West']
 
 
-              //put API-Data into variables 
+              //put api-Data into variables
               for(b in newData){
                 Altenquote.push(newData[b].Altenquote)
                 DurchschnittlicheHaushaltsgröße.push(newData[b].DurchschnittlicheHaushaltsgröße)
