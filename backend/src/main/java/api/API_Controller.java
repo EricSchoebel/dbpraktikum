@@ -21,6 +21,7 @@ public class API_Controller {
     API_Services api_services;
 
     //nur Testzweck:
+    //muss man das returnte noch jsonifyen?
     @RequestMapping(value = "/get/TestProductInformationForID", method = RequestMethod.GET)
     public List<ProduktEntity> oldGetTestAllInformationForSpecificProduct(@RequestParam(value = "pid") String pid) {
         return api_services.oldGetTestProductInfoForID(pid);
@@ -28,18 +29,18 @@ public class API_Controller {
 
 
     @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
-    public List<Object[]> getProduct(@RequestParam(value = "pid") String pid) {
+    public List<Object> getProduct(@RequestParam(value = "pid") String pid) {
         return api_services.getProductInfoForID(pid);
     }
 
     @RequestMapping(value = "/get/getProducts", method = RequestMethod.GET)
-    public List<ProduktEntity[]> getProducts(@RequestParam(value = "pattern") String pattern) {
+    public List<ProduktEntity> getProducts(@RequestParam(value = "pattern") String pattern) {
         return api_services.getProductsForPattern(pattern);
     }
 
     @RequestMapping(value = "/get/getProductsByCategoryPath", method = RequestMethod.GET)
-    public List<ProduktEntity[]> getProductsByCategoryPath(@RequestParam(value = "path") String path) {
-        return api_services.getProductsByCategoryPath(path);
+    public List<ProduktEntity> getProductsByCategoryPath(@RequestParam(value = "path") String path) {
+        return api_services.getProductsByCategoryPath(path); //jede einzelne ProduktEntity der Liste enthält jeweils pid und titel
     }
 
 

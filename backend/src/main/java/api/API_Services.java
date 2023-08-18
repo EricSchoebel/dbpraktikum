@@ -3,6 +3,7 @@ package api;
 
 import database.entities.*;
 import database.repositories.KategorieRepository;
+import database.repositories.ProduktKategorieRepository;
 import database.repositories.ProduktRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,10 @@ public class API_Services {
 
     @Autowired
     ProduktRepository produktRepository;
-
     @Autowired
     KategorieRepository kategorieRepository;
+    @Autowired
+    ProduktKategorieRepository produktKategorieRepository;
 
     //nur Testzweck:
     public List<ProduktEntity> oldGetTestProductInfoForID(String pid) {
@@ -27,16 +29,15 @@ public class API_Services {
         return resultList;
     }
 
-    public List<Object[]> getProductInfoForID(String pid) {
-        List<Object[]> resultList = produktRepository.getProduct(pid);
+    public List<Object> getProductInfoForID(String pid) {
+        List<Object> resultList = produktRepository.getProduct(pid);
         return resultList;
     }
 
-    public List<ProduktEntity[]> getProductsForPattern(String pattern) {
-        List<ProduktEntity[]> resultList = produktRepository.getProducts(pattern);
+    public List<ProduktEntity> getProductsForPattern(String pattern) {
+        List<ProduktEntity> resultList = produktRepository.getProducts(pattern);
         return resultList;
     }
-
 
 
 
@@ -47,35 +48,33 @@ public class API_Services {
     Und dann aus dieser untersten Kategorie die Katid nehmen und in der produkt_kategorie-Tabelle danach suchen
     um alle pid (potenziell mehrere) rauszuziehen. dann kannst pid und produktitel aus der Produkt-Tabelle nehmen
      */
-    public List<ProduktEntity[]> getProductsByCategoryPath(String path) {
+    public List<ProduktEntity> getProductsByCategoryPath(String path) {
 
         //übergebenen path in einzelteile aufteilen
         List<String> pathlist = new ArrayList<>(Arrays.asList(path.split("/")));
-        // quatsch: List<Integer> pathlistInKatids = new ArrayList<>();
 
         String hauptkategoriename = pathlist.get(0);
-        Integer hauptkategorieKatid = kategorieRepository.getKatidHauptkategorieHilfs(hauptkategoriename).getKatid();
+        int initialkategorieId = kategorieRepository.getKatidHauptkategorieHilfs(hauptkategoriename).getKatid(); // = hauptkategorieKatid
 
-        // quatsch:for (String kategorienname : pathlist){ }
-
-        //Zum Weitermachen:
-        /*
-        mit where oberkategorie = id von vorher
-        und kategroeiname = jetziger pathTeil
-         */
-
-
-
-
-        //vielleicht besser ovn hinten durchgen (also von Unterkategorie bis hoch?)
-        for (int i = 1; i < pathlist.size(); i++) {
-
-
-            //System.out.println("Wert von i: " + i);
+        //obersten pathteil abgearbeitet
+        if (!pathlist.isEmpty()) {
+            pathlist.remove(0);
         }
 
+        //die unterste katid finden
+        for (String jetzigerKategorienname : pathlist){
+            initialkategorieId = kategorieRepository.getKatidViaLastkategorieIdHilfs(initialkategorieId, jetzigerKategorienname).getKatid();
+        }
 
-        List<ProduktEntity[]> resultList = produktRepository.getProductsByCategoryPath(productIds);
+        //zu der untersten katid alle zugehörigen productids (als Liste) finden
+        List<ProduktKategorieEntity> hilfsliste = produktKategorieRepository.getPidsToSpecificKatIdHilfs(initialkategorieId);
+        List<String> productIds = new ArrayList<>();
+        for (ProduktKategorieEntity ent : hilfsliste){
+            productIds.add(ent.getPid());
+        }
+
+        //pid und titel zu den gefundenen productids ziehen
+        List<ProduktEntity> resultList = produktRepository.getProductsByCategoryPathHilfsteil(productIds);
         return resultList;
     }
 

@@ -17,13 +17,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface KategorieRepository {
+public interface KategorieRepository extends JpaRepository<KategorieEntity, Integer>{
 
-
-    @Query("SELECT k.kid FROM KategorieEntity k WHERE k.kategoriename = :kategoriename")
-    List<KategorieEntity[]> getKatidHilfs(@Param("kategoriename") String kategoriename);
 
     @Query("SELECT k.kid FROM KategorieEntity k WHERE k.kategoriename = :kategoriename and k.oberkategorie IS NULL")
     KategorieEntity getKatidHauptkategorieHilfs(@Param("kategoriename") String kategoriename);
+
+    @Query("SELECT k.kid FROM KategorieEntity k WHERE k.oberkategorie = :lastkategorieId and k.kategoriename = :jetzigerKategoriename")
+    KategorieEntity getKatidViaLastkategorieIdHilfs(@Param("lastkategorieId") int lastkategorieId, @Param("jetztigerKategoriename") String jetzigerKategoriename);
+
 
 }
