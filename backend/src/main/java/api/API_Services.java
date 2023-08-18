@@ -2,6 +2,7 @@ package api;
 
 
 import database.entities.*;
+import database.repositories.AngebotRepository;
 import database.repositories.KategorieRepository;
 import database.repositories.ProduktKategorieRepository;
 import database.repositories.ProduktRepository;
@@ -22,6 +23,8 @@ public class API_Services {
     KategorieRepository kategorieRepository;
     @Autowired
     ProduktKategorieRepository produktKategorieRepository;
+    @Autowired
+    AngebotRepository angebotRepository;
 
     //nur Testzweck:
     public List<ProduktEntity> oldGetTestProductInfoForID(String pid) {
@@ -80,6 +83,11 @@ public class API_Services {
 
     public List<ProduktEntity> getTopProducts(int k) {
         List<ProduktEntity> resultList = produktRepository.findTopKByRatingIsNotNullOrderByRatingDescTitelAsc(k);
+        return resultList;
+    }
+
+    public List<AngebotEntity> getOffers(String pid) {
+        List<AngebotEntity> resultList = angebotRepository.findByPid(pid);
         return resultList;
     }
 

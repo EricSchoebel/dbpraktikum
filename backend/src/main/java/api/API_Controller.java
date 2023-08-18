@@ -50,6 +50,11 @@ public class API_Controller {
         return api_services.getTopProducts(k); //jede einzelne ProduktEntity der Liste enthält jeweils pid, titel und rating
     }
 
+    @RequestMapping(value = "/get/getOffers", method = RequestMethod.GET)
+    public List<AngebotEntity> getOffers(@RequestParam(value = "pid") String pid) {
+        return api_services.getOffers(pid);
+    }
+
 
 
 }
