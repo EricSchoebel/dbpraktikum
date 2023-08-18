@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+//API mit geforderten Funktionen
+
 @CrossOrigin
 @RestController
 public class API_Controller {
