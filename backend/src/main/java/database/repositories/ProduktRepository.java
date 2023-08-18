@@ -50,4 +50,10 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     @Query("SELECT p.pid, p.titel FROM ProduktEntity p WHERE p.pid IN :productIds")
     List<ProduktEntity> getProductsByCategoryPathHilfsteil(@Param("productIds") List<String> productIds);
 
+    //hier das public mit hinschreiben, sonst denkt IDE, dass Methode nicht genutzt wird
+    public List<ProduktEntity> findTopKByRatingIsNotNullOrderByRatingDescTitelAsc(int k); //fuer getTopProducts
+
+
+
+
 }

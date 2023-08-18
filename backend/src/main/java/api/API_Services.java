@@ -78,4 +78,10 @@ public class API_Services {
         return resultList;
     }
 
+    public List<ProduktEntity> getTopProducts(int k) {
+        List<ProduktEntity> resultList = produktRepository.findTopKByRatingIsNotNullOrderByRatingDescTitelAsc(k);
+        return resultList;
+    }
+
+
 }

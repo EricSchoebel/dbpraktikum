@@ -43,6 +43,11 @@ public class API_Controller {
         return api_services.getProductsByCategoryPath(path); //jede einzelne ProduktEntity der Liste enthält jeweils pid und titel
     }
 
+    @RequestMapping(value = "/get/getTopProducts", method = RequestMethod.GET)
+    public List<ProduktEntity> getTopProducts(@RequestParam(value = "k") int k) {
+        return api_services.getTopProducts(k); //jede einzelne ProduktEntity der Liste enthält jeweils pid, titel und rating
+    }
+
 
 
 }
