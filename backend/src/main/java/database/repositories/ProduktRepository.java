@@ -39,4 +39,15 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     @Query("SELECT p FROM ProduktEntity p WHERE :pattern IS NULL OR p.titel LIKE %:pattern%")
     List<ProduktEntity[]> getProducts(@Param("pattern") String pattern);
 
+
+    /*
+    Idee: du kriegst mit Backslashen separierten Pfad,
+    aus dem musst du dann in der Kategorietabelle herausfinden was die korrekte unterste Kategorie ist
+    (kannst nicht einfach das Pfad ende in der Kategorietabelle suchen, weil Kategorien mehrfach vorkommen können).
+    Und dann aus dieser untersten Kategorie die Katid nehmen und in der produkt_kategorie-Tabelle danach suchen
+    um alle pid (potenziell mehrere) rauszuziehen. dann kannst pid und produktitel aus der Produkt-Tabelle nehmen
+     */
+    @Query("SELECT p.pid, p.titel FROM ProduktEntity p WHERE p.pid = :productIds")
+    List<ProduktEntity[]> getProductsByCategoryPath(@Param("productIds") String productIds);
+
 }

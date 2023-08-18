@@ -37,6 +37,11 @@ public class API_Controller {
         return api_services.getProductsForPattern(pattern);
     }
 
+    @RequestMapping(value = "/get/getProductsByCategoryPath", method = RequestMethod.GET)
+    public List<ProduktEntity[]> getProductsByCategoryPath(@RequestParam(value = "path") String path) {
+        return api_services.getProductsByCategoryPath(path);
+    }
+
 
 
 }
