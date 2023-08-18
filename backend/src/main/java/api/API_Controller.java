@@ -20,10 +20,21 @@ public class API_Controller {
     @Autowired
     API_Services api_services;
 
+    //nur Testzweck:
+    @RequestMapping(value = "/get/TestProductInformationForID", method = RequestMethod.GET)
+    public List<ProduktEntity> oldGetTestAllInformationForSpecificProduct(@RequestParam(value = "pid") String pid) {
+        return api_services.oldGetTestProductInfoForID(pid);
+    }
 
-    @RequestMapping(value = "/get/ProductInformationForID", method = RequestMethod.GET)
-    public List<ProduktEntity> getAllInformationForSpecificProduct(@RequestParam(value = "pid") String pid) {
+
+    @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
+    public List<Object[]> getProduct(@RequestParam(value = "pid") String pid) {
         return api_services.getProductInfoForID(pid);
+    }
+
+    @RequestMapping(value = "/get/getProducts", method = RequestMethod.GET)
+    public List<ProduktEntity[]> getProducts(@RequestParam(value = "pattern") String pattern) {
+        return api_services.getProductsForPattern(pattern);
     }
 
 

@@ -17,10 +17,20 @@ public class API_Services {
     @Autowired
     ProduktRepository produktRepository;
 
-    public List<ProduktEntity> getProductInfoForID(String pid) {
+    //nur Testzweck:
+    public List<ProduktEntity> oldGetTestProductInfoForID(String pid) {
         List<ProduktEntity> resultList = produktRepository.findAllByPid(pid);
         return resultList;
     }
 
+    public List<Object[]> getProductInfoForID(String pid) {
+        List<Object[]> resultList = produktRepository.getProduct(pid);
+        return resultList;
+    }
+
+    public List<ProduktEntity[]> getProductsForPattern(String pattern) {
+        List<ProduktEntity[]> resultList = produktRepository.getProducts(pattern);
+        return resultList;
+    }
 
 }
