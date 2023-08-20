@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -58,6 +59,33 @@ public class API_Controller {
     @RequestMapping(value = "/get/getSimilarCheaperProduct", method = RequestMethod.GET)
     public List<ProduktEntity> getSimilarCheaperProduct(@RequestParam(value = "pid") String pid) {
         return api_services.getSimilarCheaperProduct(pid);
+    }
+
+    @RequestMapping(value = "/get/getReview", method = RequestMethod.GET)
+    public List<KundenrezensionEntity> getReview(@RequestParam(value = "kundenid") String kundenid, @RequestParam(value = "pid") String pid) {
+        return api_services.getReview(kundenid, pid);
+    }
+
+    @PostMapping("/post/addReview")
+    public ResponseEntity<String> addReview(
+            @RequestParam(value ="kundenid") String kundenId,
+            @RequestParam(value ="pid") String pid,
+            @RequestParam(value = "punkte") int punkte,
+            @RequestParam(value = "helpful", required = false)  Optional<Integer> helpful,
+            @RequestParam(value = "summary", required = false) Optional<String> summary,
+            @RequestParam(value = "content", required = false) Optional<String> content) {
+
+        // Validieren Sie die Daten, z.B. ob "punkte" zwischen 1 und 5 liegt.
+        if ( ( !(punkte==1) || !(punkte==2) || !(punkte==3) || !(punkte==4) || !(punkte==5) ) ) {
+            return ResponseEntity.badRequest().body("Punktbewertung muss ganzzahlig im Bereich 1 bis 5 sein.");
+        }
+
+        if( 0 == api_services.addReview(kundenId, pid, punkte, helpful, summary, content) ) {
+            return ResponseEntity.ok("Bewertung wurde erfolgreich hinzugefügt.");
+        }
+        else{
+            return ResponseEntity.ok("Es ist ein Fehler aufgetreten");
+        }
     }
 
 

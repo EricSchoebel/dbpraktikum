@@ -2,10 +2,7 @@ package api;
 
 
 import database.entities.*;
-import database.repositories.AngebotRepository;
-import database.repositories.KategorieRepository;
-import database.repositories.ProduktKategorieRepository;
-import database.repositories.ProduktRepository;
+import database.repositories.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +22,8 @@ public class API_Services {
     ProduktKategorieRepository produktKategorieRepository;
     @Autowired
     AngebotRepository angebotRepository;
+    @Autowired
+    KundenrezensionRepository kundenrezensionRepository;
 
     //nur Testzweck:
     public List<ProduktEntity> oldGetTestProductInfoForID(String pid) {
@@ -115,6 +114,33 @@ public class API_Services {
         List<ProduktEntity> resultList = this.findIntersection(pid);
         return resultList;
     }
+
+    public List<KundenrezensionEntity> getReview(String kundenid, String pid) {
+        List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReview(kundenid, pid);
+        return resultList;
+    }
+
+    public int addReview(String kundenid, String pid, int punkte,
+                         Optional<Integer> helpful, Optional<String> summary, Optional<String> content) {
+        try {
+            KundenrezensionEntity review = new KundenrezensionEntity();
+            review.setKundenid(kundenid);
+            review.setPid(pid);
+            review.setPunkte(punkte);
+
+            helpful.ifPresent(review::setHelpful);
+            summary.ifPresent(review::setSummary);
+            content.ifPresent(review::setContent);
+            kundenrezensionRepository.save(review);
+            return 0;
+        }
+        catch (Exception e)
+        {
+            return 1;
+        }
+    }
+
+
 
 
 
