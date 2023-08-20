@@ -91,5 +91,31 @@ public class API_Services {
         return resultList;
     }
 
+    //Hilfsfkt.
+    public List<ProduktEntity> findIntersection(String pid) { //intersection of similar and cheaper
+        List<ProduktEntity> listSimilar = produktRepository.getSimilarProductsForPid1Hilfs(pid);
+        List<ProduktEntity> listSimilar2 = produktRepository.getSimilarProductsForPid2Hilfs(pid);
+        listSimilar.addAll(listSimilar2);
+
+        List<ProduktEntity> listCheaper = produktRepository.getCheaperProductsForPidHilfs(pid);
+
+        List<ProduktEntity> intersection = new ArrayList<>();
+        for (ProduktEntity a : listSimilar) {
+            for (ProduktEntity b : listCheaper) {
+                if (a.getPid().equals(b.getPid())) {
+                    intersection.add(a);
+                    break;
+                }
+            }
+        }
+        return intersection;
+    }
+
+    public List<ProduktEntity> getSimilarCheaperProduct(String pid) {
+        List<ProduktEntity> resultList = this.findIntersection(pid);
+        return resultList;
+    }
+
+
 
 }

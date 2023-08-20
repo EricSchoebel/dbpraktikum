@@ -55,6 +55,11 @@ public class API_Controller {
         return api_services.getOffers(pid);
     }
 
+    @RequestMapping(value = "/get/getSimilarCheaperProduct", method = RequestMethod.GET)
+    public List<ProduktEntity> getSimilarCheaperProduct(@RequestParam(value = "pid") String pid) {
+        return api_services.getSimilarCheaperProduct(pid);
+    }
+
 
 
 }
