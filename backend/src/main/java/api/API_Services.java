@@ -139,7 +139,7 @@ public class API_Services {
         return resultList;
     }
 
-    public int addReview(String kundenid, String pid, int punkte,
+    public int addNewReview(String kundenid, String pid, int punkte,
                          Optional<Integer> helpful, Optional<String> summary, Optional<String> content) {
         try {
             KundenrezensionEntity review = new KundenrezensionEntity();

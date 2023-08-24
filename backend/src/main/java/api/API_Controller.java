@@ -83,7 +83,7 @@ public class API_Controller {
         return api_services.getReview(kundenid, pid);
     }
 
-    @PostMapping("/post/addReview")
+    @PostMapping("/post/addNewReview")
     public ResponseEntity<String> addReview(
             @RequestParam(value ="kundenid") String kundenId,
             @RequestParam(value ="pid") String pid,
@@ -97,7 +97,7 @@ public class API_Controller {
             return ResponseEntity.badRequest().body("Punktbewertung muss ganzzahlig im Bereich 1 bis 5 sein.");
         }
 
-        if( 0 == api_services.addReview(kundenId, pid, punkte, helpful, summary, content) ) {
+        if( 0 == api_services.addNewReview(kundenId, pid, punkte, helpful, summary, content) ) {
             return ResponseEntity.ok("Bewertung wurde erfolgreich hinzugefügt.");
         }
         else{
