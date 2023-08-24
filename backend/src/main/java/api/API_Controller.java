@@ -111,7 +111,7 @@ public class API_Controller {
     }
 
     @RequestMapping(value = "/get/getOffers", method = RequestMethod.GET)
-    public List<AngebotEntity> getOffers(@RequestParam(value = "pid") String pid) {
+    public List<Object[]> getOffers(@RequestParam(value = "pid") String pid) {
         return api_services.getOffers(pid);
     }
 

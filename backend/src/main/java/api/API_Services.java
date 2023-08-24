@@ -181,8 +181,8 @@ public class API_Services {
         return kundenidList;
     }
 
-    public List<AngebotEntity> getOffers(String pid) {
-        List<AngebotEntity> resultList = angebotRepository.findByPid(pid);
+    public List<Object[]> getOffers(String pid) {
+        List<Object[]> resultList = angebotRepository.getOffers(pid);
         return resultList;
     }
 
