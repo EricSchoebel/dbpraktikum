@@ -22,7 +22,7 @@ public class SpringApplication {
 		Scanner scanner = new Scanner(System.in);
 
 		while (!initRequested) {
-			System.out.println("Möchten Sie die Anwendung initialisieren? (ja/nein)");
+			System.out.println("Haben Sie die Application.properties-Datei nach ihren Wünschen eingestellt und möchten Sie die Anwendung initialisieren? (ja/nein)");
 			String userInput = scanner.nextLine();
 
 			if ("ja".equalsIgnoreCase(userInput)) {
