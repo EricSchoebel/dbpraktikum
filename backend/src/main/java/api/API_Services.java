@@ -140,6 +140,27 @@ public class API_Services {
         }
     }
 
+    public List<String> getTrolls(Double rating) {
+
+        // liste = [ [kundenid1,durchschn.bewert.] , [kundenid2,durchschn.bewert.], ... ]
+        List<Object[]> zwischenList = kundenrezensionRepository.findDurchschnittsbewertungen();
+
+        //Objektentfernung deren Durchschnittsbewertung unter spezifizierter Ratinggrenze
+        zwischenList.removeIf(obj -> {
+            Double durchschnittsbewertung = (Double) obj[1];
+            return durchschnittsbewertung < rating;
+        });
+
+        //übrig gebliebene kundenids in Liste packen
+        List<String> kundenidList = new ArrayList<>();
+        for (Object[] obj : zwischenList) {
+            String kundenid = (String) obj[0];
+            kundenidList.add(kundenid);
+        }
+
+        return kundenidList;
+    }
+
 
 
 

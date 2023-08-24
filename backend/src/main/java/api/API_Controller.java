@@ -88,6 +88,11 @@ public class API_Controller {
         }
     }
 
+    @RequestMapping(value = "/get/getTrolls", method = RequestMethod.GET)
+    public List<String> getTrolls(@RequestParam(value = "rating") Double rating) {
+        return api_services.getTrolls(rating);
+    }
+
 
 
 }

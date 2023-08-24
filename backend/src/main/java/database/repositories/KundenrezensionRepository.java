@@ -23,5 +23,9 @@ public interface KundenrezensionRepository extends JpaRepository<Kundenrezension
     @Query("SELECT kr FROM KundenrezensionEntity kr WHERE kr.kundenid = :kundenid AND kr.pid = :pid")
     List<KundenrezensionEntity> getReview(@Param("kundenid") String kundenid, @Param("pid") String pid);
 
+    @Query("SELECT kr.kundenid, AVG(kr.punkte) AS durchschnittsbewertung FROM KundenrezensionEntity kr GROUP BY kr.kundenid")
+    List<Object[]> findDurchschnittsbewertungen();
+
+
 }
 
