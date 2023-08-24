@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+
+
+
+
 //API mit geforderten Funktionen
 
 @CrossOrigin
@@ -23,12 +27,30 @@ public class API_Controller {
     @Autowired
     API_Services api_services;
 
+    //IDEE FINSIH METHODE ----------
+    /*
+    @PostMapping("/finish")
+    public String finish() {
+        return api_services.finishApplication();
+    }
+     */
+    //----------
+
+
+
+
+
+
     //nur Testzweck:
     //muss man das returnte noch jsonifyen?
     @RequestMapping(value = "/get/TestProductInformationForID", method = RequestMethod.GET)
     public List<ProduktEntity> oldGetTestAllInformationForSpecificProduct(@RequestParam(value = "pid") String pid) {
         return api_services.oldGetTestProductInfoForID(pid);
     }
+
+
+
+
 
 
     @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
@@ -70,7 +92,7 @@ public class API_Controller {
             @RequestParam(value = "summary", required = false) Optional<String> summary,
             @RequestParam(value = "content", required = false) Optional<String> content) {
 
-        // Validieren Sie die Daten, z.B. ob "punkte" zwischen 1 und 5 liegt.
+        // Validiere die Daten, z.B. ob "punkte" zwischen 1 und 5 liegt
         if ( ( !(punkte==1) || !(punkte==2) || !(punkte==3) || !(punkte==4) || !(punkte==5) ) ) {
             return ResponseEntity.badRequest().body("Punktbewertung muss ganzzahlig im Bereich 1 bis 5 sein.");
         }

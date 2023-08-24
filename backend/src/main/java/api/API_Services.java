@@ -1,15 +1,16 @@
 package api;
-
-
 import database.entities.*;
 import database.repositories.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 
 @Service
 public class API_Services {
@@ -24,6 +25,26 @@ public class API_Services {
     AngebotRepository angebotRepository;
     @Autowired
     KundenrezensionRepository kundenrezensionRepository;
+
+    //IDEE FINISH METHODE   ---------
+    /*
+    private final ApplicationContext context;
+
+    @Autowired
+    public API_Services(ApplicationContext context) {
+        this.context = context;
+    }
+
+    public String finishApplication() {
+        SpringApplication.exit(context, () -> 0);
+        return "Die Anwendung wurde beendet. Bitte schließen Sie Ihren Browser.";
+    }
+    */
+    //---------
+
+
+
+
 
     //nur Testzweck:
     public List<ProduktEntity> oldGetTestProductInfoForID(String pid) {
@@ -41,6 +62,8 @@ public class API_Services {
         List<ProduktEntity> resultList = produktRepository.getProducts(pattern);
         return resultList;
     }
+
+
 
 
 
@@ -83,11 +106,6 @@ public class API_Services {
 
     public List<ProduktEntity> getTopProducts(int k) {
         List<ProduktEntity> resultList = produktRepository.findTopKByRatingIsNotNullOrderByRatingDescTitelAsc(k);
-        return resultList;
-    }
-
-    public List<AngebotEntity> getOffers(String pid) {
-        List<AngebotEntity> resultList = angebotRepository.findByPid(pid);
         return resultList;
     }
 
@@ -141,6 +159,7 @@ public class API_Services {
         }
     }
 
+
     public List<String> getTrolls(Double rating) {
 
         // liste = [ [kundenid1,durchschn.bewert.] , [kundenid2,durchschn.bewert.], ... ]
@@ -161,6 +180,12 @@ public class API_Services {
 
         return kundenidList;
     }
+
+    public List<AngebotEntity> getOffers(String pid) {
+        List<AngebotEntity> resultList = angebotRepository.findByPid(pid);
+        return resultList;
+    }
+
 
 
 
