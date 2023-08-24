@@ -1,80 +1,57 @@
 <template>
-    <div>
-    <!-- Navigations-Bar rechts zum einstellen der Diagramme -->
-      <v-navigation-drawer
-      location="right"
-      v-model="drawer"
-      >   
 
-        <v-card-title>Ortsteile auswählen:</v-card-title>
-        <v-combobox
-          v-model="selectOrte"
-          :items="itemsOrte"
-          label="Ortsteile"
-          multiple
-          chips
-          >
-                  <template v-slot:prepend-item>
-                  <v-checkbox
-                    v-model="selectAll"
-                    label="alle auswählen"
-                    @click ="toggleSelectAll"
-                    class="pl-4 mb-n6"
-                  ></v-checkbox>
-                  </template>
-        </v-combobox>
-
-        <v-card-title>Kategorien auswählen:</v-card-title>
-        <v-combobox
-          v-model="selectKategorie"
-          :items="itemsKategorie"
-          label="Kategorien"
-          multiple
-          chips
-        ></v-combobox>
-
-      </v-navigation-drawer>
+   
 
 
 
-    <main>
-      <v-card rounded="0">
+   
 
-        <v-row class="ma-5">
-           <v-col>
-               <h2>Wertevergleich</h2>
-               <v-card-text>Im Folgenden können gewählte Ortsteile hinsichtlich bestimmter Kategorien in einem Balkendiagramm graphisch veranschaulicht werden.
-                Fahren Sie zudem über einen Balken, um genauere Informationen zu erhalten. Dieses einführende Feature soll Ihnen helfen,
-                sich einen Überblick über die Daten zu verschaffen und deskriptive Vergleiche ziehen zu können. 
-                </v-card-text>
-           </v-col>
-         </v-row>
 
-         <v-row class="mx-15 my-3"> <!-- Added margin utility classes mx-5 and my-3 for horizontal and vertical spacing -->
-          <v-col>
-            <div class="bar-chart-container" id="bar">
-            <BarChart
-                  ref="barChart"
-                  :orte="this.selectOrte"
-                  :kategorie="this.selectKategorie"
-                  @kategorie="handleKategorie" 
-                  @orte="handleOrte" 
-            ></BarChart>
-          </div>
-          </v-col>
-         </v-row>
-     
-      </v-card>
-    </main>
+
+
+
+      <div>
+        <v-text-field v-model="inputText" label="Eingabe" outlined></v-text-field>
+        <v-btn @click="submit">Submit</v-btn>
+        <div v-if="outputText">{{ outputText }}</div>
+      </div>
+
+
+
+
     
-    </div>
+
 
 </template>
 
 <script>
-    import BarChart from "@/components/BarChart"
     
+    
+    
+   /* import BarChart from "@/components/BarChart"  */
+
+
+
     export default{
+
+
+      data() {
+    return {
+      inputText: '',
+      outputText: ''
+    };
+  },
+  methods: {
+    submit() {
+      // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
+      // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
+      this.outputText = this.inputText;
+              }
+    }
+    };
+
+      /*
+
         components: { BarChart },
         data () {
             return {
@@ -102,12 +79,19 @@
             }, 
 
         }
-        
-    }
+        }
+        */
+
+
+
+
+
+   
 
 </script>
 
 <style>
+  /*
   h2{
     text-align: center;
     position: relative;
@@ -116,11 +100,12 @@
   h3{
     text-align: center;
   }
-  .bar-chart-container { /*so passt es auf normal großen Bildschirm */
+  .bar-chart-container { 
     max-width: 2000px; 
     max-height: 650px; 
-    margin: 0 auto; /* Center the chart horizontally */ 
+    margin: 0 auto;
   }
+  */
   </style>
 
 
