@@ -18,11 +18,30 @@
     </div>
     <div class="caption"></div>
 
+    <br>
+    <br>
+
+    
+    <v-btn @click="handleClick" class="custom-pink-button">Anwendung beenden (Finish)</v-btn>
+
   </main>
   
 </div>
 
 </template>
+
+<script>
+export default {
+  methods: {
+    handleClick() {
+      // Aktion bei klick
+      alert('Anwendung wurde beendet. Bitte den Browser schließen.');
+    }
+  }
+};
+</script>
+
+
 
 <style>
 .spacer {
@@ -46,6 +65,19 @@
   font-style: italic;
   margin-right: 20px;
 }
+/* Stil für den benutzerdefinierten rosa Button */
+.custom-pink-button {
+  background-color: #fce4ec; /* Rosa Hintergrundfarbe */
+  color: #333; /* Textfarbe */
+  margin-left: 10px;
+}
+
+.custom-pink-button:hover {
+  background-color: #ffC0cb; /* Farbänderung im Hover-Zustand */
+}
+
 
 
 </style>
+
+
