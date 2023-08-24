@@ -135,8 +135,14 @@ public class API_Services {
     }
 
     public List<KundenrezensionEntity> getReview(String kundenid, String pid) {
-        List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReview(kundenid, pid);
-        return resultList;
+        if (kundenid != null && pid.equals("*")) {
+            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReviewsSonderfall(kundenid);
+            return resultList;
+        }
+        else {
+            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReview(kundenid, pid);
+            return resultList;
+        }
     }
 
     public int addNewReview(String kundenid, String pid, int punkte,

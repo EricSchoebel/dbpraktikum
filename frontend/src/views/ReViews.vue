@@ -29,8 +29,8 @@
           <v-container>
             <v-row>
               <v-col cols="12" md="6">
-                <!-- Hier kann man noch direkt etwas hinschreiben wenn man will -->
-                <v-text-field v-model="input_getReview" label="Angebote für folgende ProduktID" outlined></v-text-field>
+                "KundenID/ProduktID" (".../*" für alle Produkte), Bsp.: "baerchen76/B000024A70"
+                <v-text-field v-model="input_getReview" label="Reviews für folgende Kombination aus KundenID und ProduktID" outlined></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
                 <v-btn @click="submit_getReview" class="custom-green-button">Absenden</v-btn>
