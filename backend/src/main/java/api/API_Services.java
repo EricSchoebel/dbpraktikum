@@ -25,6 +25,8 @@ public class API_Services {
     AngebotRepository angebotRepository;
     @Autowired
     KundenrezensionRepository kundenrezensionRepository;
+    @Autowired
+    KundeRepository kundeRepository;
 
     //IDEE FINISH METHODE   ---------
     /*
@@ -148,6 +150,17 @@ public class API_Services {
     public int addNewReview(String kundenid, String pid, int punkte,
                          Optional<Integer> helpful, Optional<String> summary, Optional<String> content) {
         try {
+
+            //musst ja erstmal checken obs die kundenid im kundentabelle gibt:
+            //wenn ja, einfach review anlegen; wenn nein, dann erst kunden anlegen (sonst Primärschlüsselverletzung)
+            Optional<KundeEntity> vorhandenerKunde = kundeRepository.findByKundenid(kundenid);
+
+            if (!vorhandenerKunde.isPresent()){ //Fall, dass KundenID noch nicht in Kundentabelle
+                KundeEntity neuerKunde = new KundeEntity();
+                neuerKunde.setKundenid(kundenid);
+                kundeRepository.save(neuerKunde);
+            }
+
             KundenrezensionEntity review = new KundenrezensionEntity();
             review.setKundenid(kundenid);
             review.setPid(pid);
@@ -156,7 +169,7 @@ public class API_Services {
             helpful.ifPresent(review::setHelpful);
             summary.ifPresent(review::setSummary);
             content.ifPresent(review::setContent);
-            kundenrezensionRepository.save(review);
+            kundenrezensionRepository.save(review); // pid muss es geben
             return 0;
         }
         catch (Exception e)

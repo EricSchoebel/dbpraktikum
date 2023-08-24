@@ -101,7 +101,9 @@ public class API_Controller {
             return ResponseEntity.ok("Bewertung wurde erfolgreich hinzugefügt.");
         }
         else{
-            return ResponseEntity.ok("Es ist ein Fehler aufgetreten");
+            return ResponseEntity.ok("Es ist ein Fehler aufgetreten. " +
+                    "Mögliche Ursachen: ProduktID nicht gefunden, " +
+                    "Unter dieser KundenID wurde für diese ProduktID schon eine Rezension angelegt, ...");
         }
     }
 
