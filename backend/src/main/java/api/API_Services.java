@@ -31,6 +31,7 @@ public class API_Services {
         return resultList;
     }
 
+
     public List<Object> getProductInfoForID(String pid) {
         List<Object> resultList = produktRepository.getProduct(pid);
         return resultList;
