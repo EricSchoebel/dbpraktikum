@@ -21,7 +21,7 @@ import java.util.*;
 
 @CrossOrigin
 @RestController
-public class API_Controller {
+public class API_Controller  {
 
     @Qualifier("API_Services")
     @Autowired
