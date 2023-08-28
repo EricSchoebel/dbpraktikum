@@ -18,6 +18,9 @@ public interface KundenrezensionRepository extends JpaRepository<Kundenrezension
     @Query("SELECT kr FROM KundenrezensionEntity kr WHERE kr.kundenid = :kundenid")
     List<KundenrezensionEntity> getReviewsSonderfall(@Param("kundenid") String kundenid);
 
+    @Query("SELECT kr FROM KundenrezensionEntity kr WHERE kr.pid = :pid")
+    List<KundenrezensionEntity> getReviewsSonderfallZwei(@Param("pid") String pid);
+
     @Query("SELECT kr.kundenid, AVG(kr.punkte) AS durchschnittsbewertung FROM KundenrezensionEntity kr GROUP BY kr.kundenid")
     List<Object[]> findDurchschnittsbewertungen();
 

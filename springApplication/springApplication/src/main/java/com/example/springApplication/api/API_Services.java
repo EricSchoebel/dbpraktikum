@@ -127,6 +127,10 @@ public class API_Services {
             List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReviewsSonderfall(kundenid);
             return resultList;
         }
+        else if (pid != null && kundenid.equals("*")) {
+            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReviewsSonderfallZwei(kundenid);
+            return resultList;
+        }
         else {
             List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReview(kundenid, pid);
             return resultList;

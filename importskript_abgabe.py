@@ -72,7 +72,7 @@ except psycopg2.Error as error:
 print("Verarbeite Leipzig-Daten...")
 
 # Etree-package initialisieren
-tree_two = ET.parse("backend\data\leipzig_transformed.xml")
+tree_two = ET.parse("data\leipzig_transformed.xml")
 root_two = tree_two.getroot()
 
 # Tabellen loeschen und neu erstellen (SQL-Befehle siehe "SQL_drop_create.py")
@@ -880,7 +880,7 @@ connection.commit()
 print("Verarbeite Dresden-Daten...")
 
 # Etree-package initialisieren
-tree_three = ET.parse("backend\data\dresden.xml")
+tree_three = ET.parse("data\dresden.xml")
 root_three = tree_three.getroot()
 
 # Tabellen leeren vor erneutem Einfügen
@@ -1761,7 +1761,7 @@ connection.commit()
 guest_nummer_zaehler = 0
 
 with connection.cursor() as cursor:
-    with open(r"backend\data\reviews.csv", encoding="utf8") as csv_file:
+    with open(r"data\reviews.csv", encoding="utf8") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=",")
         # csv-Header ueberspringen
         next(csv_reader)
@@ -1819,7 +1819,7 @@ connection.commit()
 # ---------KATEGORIEN ANFANG-------------------
 
 # Etree-package initialisieren
-tree = ET.parse("backend\data\categories.xml")
+tree = ET.parse("data\categories.xml")
 root = tree.getroot()
 
 # fuehrende Zahl zeigt an, ob es Haupt- oder Unterkategorie ist
@@ -1886,6 +1886,59 @@ connection.commit()
 
 # ---------KATEGORIEN ENDE-------------------
 
+triggerstring ="""
+CREATE OR REPLACE FUNCTION UpdateRatingFunction() 
+RETURNS TRIGGER AS 
+$BODY$ 
+BEGIN 
+UPDATE Produkt 
+SET Rating = (SELECT AVG(Punkte) FROM Kundenrezension WHERE PID = NEW.PID) 
+WHERE PID = NEW.PID; 
+RETURN NEW; 
+END; 
+$BODY$ 
+LANGUAGE plpgsql; 
+CREATE OR REPLACE FUNCTION DeleteCaseUpdateRatingFunction() 
+RETURNS TRIGGER AS 
+$BODY$ 
+BEGIN 
+IF NOT EXISTS ( 
+    SELECT 1 
+FROM Kundenrezension 
+WHERE PID = OLD.PID 
+AND KundenID <> OLD.KundenID 
+) THEN 
+UPDATE Produkt 
+SET Rating = NULL 
+WHERE PID = OLD.PID; 
+ELSE  
+UPDATE Produkt 
+SET Rating = ( 
+    SELECT AVG(Punkte) 
+FROM Kundenrezension 
+WHERE PID = OLD.PID 
+AND KundenID <> OLD.KundenID 
+) 
+WHERE PID = OLD.PID; 
+END IF; 
+RETURN NULL; 
+END; 
+$BODY$ 
+LANGUAGE plpgsql; 
+CREATE TRIGGER NeuUpdateRating_Insert 
+AFTER INSERT ON Kundenrezension 
+FOR EACH ROW 
+EXECUTE FUNCTION UpdateRatingFunction(); 
+CREATE TRIGGER NeuUpdateRating_Update 
+AFTER UPDATE ON Kundenrezension 
+FOR EACH ROW 
+EXECUTE FUNCTION UpdateRatingFunction(); 
+CREATE TRIGGER NeuUpdateRating_Delete 
+AFTER DELETE ON Kundenrezension 
+FOR EACH ROW 
+EXECUTE FUNCTION DeleteCaseUpdateRatingFunction(); 
+"""
+
 #letztes Aufräumen
 with connection.cursor() as aufraeumer:
     aufraeumer.execute(
@@ -1895,6 +1948,19 @@ with connection.cursor() as aufraeumer:
     aufraeumer.execute(
         "DELETE FROM Produkt p WHERE p.pid LIKE '%?%';"
     )
+    connection.commit()
+    aufraeumer.execute(
+        "ALTER TABLE public.fehlerlog "
+        +"ALTER COLUMN fehlernachricht SET DATA TYPE text; "
+        +"ALTER TABLE public.kundenrezension "
+        +"ALTER COLUMN content type text; "
+        )
+    connection.commit()
+    aufraeumer.execute(
+        "UPDATE Kategorie SET Kategoriename = TRIM(BOTH ' ' FROM REPLACE(Kategoriename, E'\n', ''));"
+        )
+    connection.commit()
+    aufraeumer.execute(triggerstring)
 connection.commit()
 
 connection.close()
