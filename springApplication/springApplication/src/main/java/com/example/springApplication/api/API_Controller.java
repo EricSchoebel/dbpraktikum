@@ -31,6 +31,15 @@ public class API_Controller {
     public List<ProduktEntity> oldGetTestAllInformationForSpecificProduct(@RequestParam(value = "pid") String pid) {
         return api_services.oldGetTestProductInfoForID(pid);
     }
+    //nur Testzweck:
+    @RequestMapping(value = "/get/getTestKunde", method = RequestMethod.GET)
+    public Optional<KundeEntity> getTestKunde(@RequestParam(value = "kundenid") String kundenid) {
+        return api_services.oldGetTestKunde(kundenid);
+    }
+
+
+
+
 
     @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
     public List<Object> getProduct(@RequestParam(value = "pid") String pid) {
@@ -64,6 +73,31 @@ public class API_Controller {
     @RequestMapping(value = "/get/getReview", method = RequestMethod.GET)
     public List<KundenrezensionEntity> getReview(@RequestParam(value = "kundenid") String kundenid, @RequestParam(value = "pid") String pid) {
         return api_services.getReview(kundenid, pid);
+    }
+
+    @PostMapping("/post/addNewReview")
+    public ResponseEntity<String> addNewReview( //reviewdate wird automatisch auf jeweiliges Datum gesetzt
+            @RequestParam(value ="kundenid") String kundenid,
+            @RequestParam(value ="pid") String pid,
+            @RequestParam(value = "punkte") int punkte,
+            @RequestParam(value = "helpful", required = false)  Optional<Integer> helpful,
+            @RequestParam(value = "summary", required = false) Optional<String> summary,
+            @RequestParam(value = "content", required = false) Optional<String> content) {
+
+        // Validiere die Daten, z.B. ob "punkte" zwischen 1 und 5 liegt
+        if ( ( !(punkte==1) && !(punkte==2) && !(punkte==3) && !(punkte==4) && !(punkte==5) ) ) {
+            return ResponseEntity.badRequest().body("Punktbewertung muss ganzzahlig im Bereich 1 bis 5 sein.");
+        }
+
+        if( 0 == api_services.addNewReview(kundenid, pid, punkte, helpful, summary, content) ) {
+            return ResponseEntity.ok("Bewertung wurde erfolgreich hinzugefügt.");
+        }
+        else{
+            return ResponseEntity.ok("Es ist ein Fehler aufgetreten. " +
+                    "Mögliche Ursachen: ProduktID nicht gefunden, " +
+                    "Unter dieser KundenID wurde für diese ProduktID schon eine Rezension angelegt," +
+                    "Punktbewertung keine Ganzzahl von 1 bis 5, ...");
+        }
     }
 
     @RequestMapping(value = "/get/getTrolls", method = RequestMethod.GET)

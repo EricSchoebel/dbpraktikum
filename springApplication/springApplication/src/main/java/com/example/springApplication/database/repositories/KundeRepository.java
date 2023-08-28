@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface KundeRepository extends JpaRepository<KundeEntity, String>{
 
+    Optional<KundeEntity> findByKundenid(String kundenid);
 
 
 }

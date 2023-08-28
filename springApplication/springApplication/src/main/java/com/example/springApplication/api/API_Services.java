@@ -33,6 +33,11 @@ public class API_Services {
         List<ProduktEntity> resultList = produktRepository.findAllByPid(pid);
         return resultList;
     }
+    //nur Testzweck:
+    public Optional<KundeEntity> oldGetTestKunde(String kundenid) {
+        Optional<KundeEntity>  test = kundeRepository.findByKundenid(kundenid);
+        return test;
+    }
 
 
     public List<Object> getProductInfoForID(String pid) {
@@ -128,6 +133,46 @@ public class API_Services {
         else {
             List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReview(kundenid, pid);
             return resultList;
+        }
+    }
+
+
+
+
+
+    public int addNewReview(String kundenid, String pid, int punkte,
+                            Optional<Integer> helpful, Optional<String> summary, Optional<String> content) {
+        try {
+
+            //musst ja erstmal checken obs die kundenid im kundentabelle gibt:
+            //wenn ja, einfach review anlegen; wenn nein, dann erst kunden anlegen (sonst Primärschlüsselverletzung)
+            Optional<KundeEntity> vorhandenerKunde = kundeRepository.findByKundenid(kundenid);
+
+            if (!vorhandenerKunde.isPresent()){ //Fall, dass KundenID noch nicht in Kundentabelle
+                KundeEntity neuerKunde = new KundeEntity();
+                neuerKunde.setKundenid(kundenid);
+                kundeRepository.save(neuerKunde);
+            }
+
+            KundenrezensionEntity review = new KundenrezensionEntity();
+            review.setKundenid(kundenid);
+            review.setPid(pid);
+            review.setPunkte(punkte);
+
+            helpful.ifPresent(review::setHelpful);
+            summary.ifPresent(review::setSummary);
+            content.ifPresent(review::setContent);
+
+            java.util.Date utilDate = Calendar.getInstance().getTime();
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+            review.setReviewdate(sqlDate);
+
+            kundenrezensionRepository.save(review); // pid muss es geben
+            return 0;
+        }
+        catch (Exception e)
+        {
+            return 1;
         }
     }
 
