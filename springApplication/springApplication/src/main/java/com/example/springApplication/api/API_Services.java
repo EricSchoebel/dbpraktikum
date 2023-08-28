@@ -118,6 +118,11 @@ public class API_Services {
         return resultList;
     }
 
+    public List<Object[]> getOffers(String pid) {
+        List<Object[]> resultList = angebotRepository.getOffers(pid);
+        return resultList;
+    }
+
 
 
 }

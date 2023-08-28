@@ -23,7 +23,7 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     //List<ProduktEntity> findProductsByPid(@Param("pid") String pid);
 
 
-    @Query("SELECT p, b.seitenzahl, b.erscheinungsdatum, b.isbn, b.verlag, "+
+    @Query("SELECT p.pid, p.titel, p.rating, p.verkaufsrang, p.bild, b.seitenzahl, b.erscheinungsdatum, b.isbn, b.verlag, "+
             "d.format, d.laufzeit, d.regioncode, "+
             "c.label, c.erscheinungsdatum "+
             "FROM ProduktEntity p " +
