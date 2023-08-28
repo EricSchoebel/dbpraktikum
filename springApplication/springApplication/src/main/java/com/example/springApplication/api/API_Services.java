@@ -120,6 +120,17 @@ public class API_Services {
         return resultList;
     }
 
+    public List<KundenrezensionEntity> getReview(String kundenid, String pid) {
+        if (kundenid != null && pid.equals("*")) {
+            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReviewsSonderfall(kundenid);
+            return resultList;
+        }
+        else {
+            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReview(kundenid, pid);
+            return resultList;
+        }
+    }
+
     public List<String> getTrolls(Double rating) {
 
         // liste = [ [kundenid1,durchschn.bewert.] , [kundenid2,durchschn.bewert.], ... ]

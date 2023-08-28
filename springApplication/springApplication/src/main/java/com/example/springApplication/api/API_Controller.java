@@ -61,6 +61,11 @@ public class API_Controller {
         return api_services.getSimilarCheaperProduct(pid);
     }
 
+    @RequestMapping(value = "/get/getReview", method = RequestMethod.GET)
+    public List<KundenrezensionEntity> getReview(@RequestParam(value = "kundenid") String kundenid, @RequestParam(value = "pid") String pid) {
+        return api_services.getReview(kundenid, pid);
+    }
+
     @RequestMapping(value = "/get/getTrolls", method = RequestMethod.GET)
     public List<String> getTrolls(@RequestParam(value = "rating") Double rating) {
         return api_services.getTrolls(rating);
