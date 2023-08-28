@@ -56,4 +56,10 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     @Query("SELECT p FROM ProduktEntity p WHERE p.rating IS NOT NULL ORDER BY p.rating DESC, p.titel ASC")
     List<ProduktEntity> findByRatingIsNotNullOrderByRatingDescTitelAsc(int k); //fuer getTopProducts
 
+
+
+
+
+
+
 }

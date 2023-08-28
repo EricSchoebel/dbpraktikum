@@ -56,6 +56,10 @@ public class API_Controller {
         return api_services.getTopProducts(k); //jede einzelne ProduktEntity der Liste enthält jeweils pid, titel und rating
     }
 
+    @RequestMapping(value = "/get/getSimilarCheaperProduct", method = RequestMethod.GET)
+    public List<String> getSimilarCheaperProduct(@RequestParam(value = "pid") String pid) {
+        return api_services.getSimilarCheaperProduct(pid);
+    }
 
 
 }

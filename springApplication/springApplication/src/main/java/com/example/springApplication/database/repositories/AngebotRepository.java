@@ -13,5 +13,9 @@ import java.util.List;
 @Repository
 public interface AngebotRepository extends JpaRepository<AngebotEntity, Integer>  {
 
+    @Query("SELECT DISTINCT a.pid FROM AngebotEntity a "+
+            "WHERE a.preis IS NOT NULL AND a.preis < (SELECT b.preis FROM AngebotEntity b WHERE b.pid = :productId) ")
+    List<String> getCheaperProductsForPidHilfs(@Param("productId") String productId);
+
 
 }

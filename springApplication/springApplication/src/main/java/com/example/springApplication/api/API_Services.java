@@ -7,10 +7,7 @@ import com.example.springApplication.database.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class API_Services {
@@ -23,7 +20,8 @@ public class API_Services {
     ProduktKategorieRepository produktKategorieRepository;
     @Autowired
     AngebotRepository angebotRepository;
-
+    @Autowired
+    AehnlichkeitRepository aehnlichkeitRepository;
     @Autowired
     KundeRepository kundeRepository;
 
@@ -89,6 +87,35 @@ public class API_Services {
         List<ProduktEntity> zwischenList = produktRepository.findByRatingIsNotNullOrderByRatingDescTitelAsc(k);
         zwischenList = zwischenList.subList(0, k);
         return zwischenList;
+    }
+
+    //Hilfsfkt.
+    public List<String> findIntersection(String pid) { //intersection of similar and cheaper
+        List<String> listSimilarA = aehnlichkeitRepository.getSimilarProductsForPid1Hilfs(pid);
+        List<String> listSimilarB = aehnlichkeitRepository.getSimilarProductsForPid2Hilfs(pid);
+
+        List<String> combinedList = new ArrayList<>(listSimilarA);
+        combinedList.addAll(listSimilarB);
+        Set<String> uniqueSet = new HashSet<>(combinedList);
+        List<String> listSimilar = new ArrayList<>(uniqueSet);
+
+        List<String> listCheaper = angebotRepository.getCheaperProductsForPidHilfs(pid);
+
+        List<String> intersection = new ArrayList<>();
+        for (String a : listSimilar) {
+            for (String b : listCheaper) {
+                if ( a.equals(b) ) {
+                    intersection.add(a);
+                    break;
+                }
+            }
+        }
+        return intersection;
+    }
+
+    public List<String> getSimilarCheaperProduct(String pid) {
+        List<String> resultList = this.findIntersection(pid);
+        return resultList;
     }
 
 
