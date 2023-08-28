@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/backend/backend.iml" filepath="$PROJECT_DIR$/backend/backend.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/dbpraktikum.iml" filepath="$PROJECT_DIR$/.idea/dbpraktikum.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backend/old2_backend.iml" filepath="$PROJECT_DIR$/backend/old2_backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/springApplication/springApplication/springApplication.iml" filepath="$PROJECT_DIR$/springApplication/springApplication/springApplication.iml" />
     </modules>
   </component>
 </project>
