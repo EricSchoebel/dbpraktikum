@@ -21,6 +21,11 @@ public class API_Services {
     KategorieRepository kategorieRepository;
     @Autowired
     ProduktKategorieRepository produktKategorieRepository;
+    @Autowired
+    AngebotRepository angebotRepository;
+
+    @Autowired
+    KundeRepository kundeRepository;
 
 
     //nur Testzweck:
@@ -80,6 +85,11 @@ public class API_Services {
 
      */
 
+    public List<ProduktEntity> getTopProducts(int k) { //bei gleichem Rating nach Titel (aufsteigend) geordnet
+        List<ProduktEntity> zwischenList = produktRepository.findByRatingIsNotNullOrderByRatingDescTitelAsc(k);
+        zwischenList = zwischenList.subList(0, k);
+        return zwischenList;
+    }
 
 
 

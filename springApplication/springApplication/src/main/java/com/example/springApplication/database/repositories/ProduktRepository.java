@@ -3,6 +3,7 @@ package com.example.springApplication.database.repositories;
 //import database.entities.RechnerId;
 
 import com.example.springApplication.database.entities.ProduktEntity;
+import com.example.springApplication.database.entities.ProduktKategorieEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -46,5 +47,13 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     @Query("SELECT p.pid, p.titel FROM ProduktEntity p WHERE p.pid IN :productIds")
     List<ProduktEntity> getProductsByCategoryPathHilfsteil(@Param("productIds") List<String> productIds);
     */
+
+    @Query("SELECT pk.pid FROM ProduktKategorieEntity pk WHERE pk.katid = :untersteKatId")
+    List<ProduktKategorieEntity> getPidsToSpecificKatIdHilfs(@Param("untersteKatId") int untersteKatId);
+
+    //hier das public mit hinschreiben, sonst denkt IDE, dass Methode nicht genutzt wird
+    //public List<ProduktEntity> findTopKByRatingIsNotNullOrderByRatingDescTitelAsc(int k); //fuer getTopProducts
+    @Query("SELECT p FROM ProduktEntity p WHERE p.rating IS NOT NULL ORDER BY p.rating DESC, p.titel ASC")
+    List<ProduktEntity> findByRatingIsNotNullOrderByRatingDescTitelAsc(int k); //fuer getTopProducts
 
 }
