@@ -19,6 +19,7 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 	}
 
+
 	@GetMapping("/hello")
 	public String hello(@RequestParam(value = "digit", defaultValue = "0") String digit) {
 		return String.format("%d", (5 + Integer.parseInt(digit)));
