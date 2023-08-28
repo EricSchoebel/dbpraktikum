@@ -51,20 +51,19 @@ public class API_Services {
     }
 
     /*
-    Idee: du kriegst mit Backslashen separierten Pfad,
+    Idee: du kriegst mit Slashen separierten Pfad,
     aus dem musst du dann in der Kategorietabelle herausfinden was die korrekte unterste Kategorie ist
     (kannst nicht einfach das Pfad ende in der Kategorietabelle suchen, weil Kategorien mehrfach vorkommen können).
     Und dann aus dieser untersten Kategorie die Katid nehmen und in der produkt_kategorie-Tabelle danach suchen
     um alle pid (potenziell mehrere) rauszuziehen. dann kannst pid und produktitel aus der Produkt-Tabelle nehmen
      */
-    /*
     public List<ProduktEntity> getProductsByCategoryPath(String path) {
 
         //übergebenen path in einzelteile aufteilen
         List<String> pathlist = new ArrayList<>(Arrays.asList(path.split("/")));
 
         String hauptkategoriename = pathlist.get(0);
-        int initialkategorieId = kategorieRepository.getKatidHauptkategorieHilfs(hauptkategoriename).getKatid(); // = hauptkategorieKatid
+        int initialkategorieId = kategorieRepository.getKatidHauptkategorieHilfs(hauptkategoriename); // = hauptkategorieKatid
 
         //obersten pathteil abgearbeitet
         if (!pathlist.isEmpty()) {
@@ -73,22 +72,20 @@ public class API_Services {
 
         //die unterste katid finden
         for (String jetzigerKategorienname : pathlist){
-            initialkategorieId = kategorieRepository.getKatidViaLastkategorieIdHilfs(initialkategorieId, jetzigerKategorienname).getKatid();
+            initialkategorieId = kategorieRepository.getKatidViaLastkategorieIdHilfs(initialkategorieId, jetzigerKategorienname);
         }
 
         //zu der untersten katid alle zugehörigen productids (als Liste) finden
-        List<ProduktKategorieEntity> hilfsliste = produktKategorieRepository.getPidsToSpecificKatIdHilfs(initialkategorieId);
+        List<String> hilfsliste = produktKategorieRepository.getPidsToSpecificKatIdHilfs(initialkategorieId);
         List<String> productIds = new ArrayList<>();
-        for (ProduktKategorieEntity ent : hilfsliste){
-            productIds.add(ent.getPid());
+        for (String ent : hilfsliste){
+            productIds.add(ent);
         }
 
         //pid und titel zu den gefundenen productids ziehen
         List<ProduktEntity> resultList = produktRepository.getProductsByCategoryPathHilfsteil(productIds);
         return resultList;
     }
-
-     */
 
     public List<ProduktEntity> getTopProducts(int k) { //bei gleichem Rating nach Titel (aufsteigend) geordnet
         List<ProduktEntity> zwischenList = produktRepository.findByRatingIsNotNullOrderByRatingDescTitelAsc(k);

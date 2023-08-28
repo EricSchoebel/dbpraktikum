@@ -21,6 +21,6 @@ public interface ProduktKategorieRepository extends JpaRepository<ProduktKategor
     */
 
     @Query("SELECT pk.pid FROM ProduktKategorieEntity pk WHERE pk.katid = :untersteKatId")
-    List<ProduktKategorieEntity> getPidsToSpecificKatIdHilfs(@Param("untersteKatId") int untersteKatId);
+    List<String> getPidsToSpecificKatIdHilfs(@Param("untersteKatId") int untersteKatId);
 
 }

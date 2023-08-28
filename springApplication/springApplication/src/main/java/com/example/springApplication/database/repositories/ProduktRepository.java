@@ -43,10 +43,9 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     Und dann aus dieser untersten Kategorie die Katid nehmen und in der produkt_kategorie-Tabelle danach suchen
     um alle pid (potenziell mehrere) rauszuziehen. dann kannst pid und produktitel aus der Produkt-Tabelle nehmen
      */
-    /*
-    @Query("SELECT p.pid, p.titel FROM ProduktEntity p WHERE p.pid IN :productIds")
+
+    @Query("SELECT p FROM ProduktEntity p WHERE p.pid IN :productIds")   //braucht eig. nur SELECT p.pid, p.titel
     List<ProduktEntity> getProductsByCategoryPathHilfsteil(@Param("productIds") List<String> productIds);
-    */
 
     @Query("SELECT pk.pid FROM ProduktKategorieEntity pk WHERE pk.katid = :untersteKatId")
     List<ProduktKategorieEntity> getPidsToSpecificKatIdHilfs(@Param("untersteKatId") int untersteKatId);
