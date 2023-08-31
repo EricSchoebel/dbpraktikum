@@ -24,7 +24,7 @@
   
     <div>
       <v-card>
-        <v-card-title>getReview:</v-card-title>
+        <v-card-title style="color: rgb(14, 14, 184);">getReview:</v-card-title>
         <v-card-text>
           <v-container>
             <v-row>
@@ -51,7 +51,7 @@
 
     <div>
     <v-card>
-      <v-card-title>addNewReview:</v-card-title>
+      <v-card-title style="color: rgb(14, 14, 184);">addNewReview:</v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
@@ -120,7 +120,7 @@
 
   <div>
       <v-card>
-        <v-card-title>getTrolls:</v-card-title>
+        <v-card-title style="color: rgb(14, 14, 184);">getTrolls:</v-card-title>
         <v-card-text>
           <v-container>
             <v-row>
