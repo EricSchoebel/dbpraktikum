@@ -24,7 +24,7 @@
               <v-text-field v-model="input_getProduct" label="Produktinfos für folgende ProduktID" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
-              <v-btn @click="submit_getProduct" class="custom-green-button">Absenden</v-btn>
+        <!--      <v-btn @click="submit_getProduct" class="custom-green-button">Absenden</v-btn> -->
             </v-col>
           </v-row>
         </v-container>
@@ -63,7 +63,7 @@
               <v-text-field v-model="input_getProductsPattern" label="Produkte mit Titel mit folgendem Muster" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
-              <v-btn @click="submit_getProductsPattern" class="custom-green-button">Absenden</v-btn>
+        <!--       <v-btn @click="submit_getProductsPattern" class="custom-green-button">Absenden</v-btn>  -->
             </v-col>
           </v-row>
         </v-container>
@@ -101,7 +101,7 @@
               <v-text-field v-model="input_getProductsByCategoryPath" label="Produkte für folgenden Kategoriepfad" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
-              <v-btn @click="submit_getProductsByCategoryPath" class="custom-green-button">Absenden</v-btn>
+         <!--      <v-btn @click="submit_getProductsByCategoryPath" class="custom-green-button">Absenden</v-btn> -->
             </v-col>
           </v-row>
         </v-container>
@@ -138,7 +138,7 @@
               <v-text-field v-model="input_getTopProducts" label="Top k Produkte für folgendes k" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
-              <v-btn @click="submit_getTopProducts" class="custom-green-button">Absenden</v-btn>
+         <!--     <v-btn @click="submit_getTopProducts" class="custom-green-button">Absenden</v-btn> -->
             </v-col>
           </v-row>
         </v-container>
@@ -178,7 +178,7 @@
               <v-text-field v-model="input_getSimilarCheaperProduct" label="Produkte, die ähnlich und billiger im Vergleich zu folgender ProduktID" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
-              <v-btn @click="submit_getSimilarCheaperProduct" class="custom-green-button">Absenden</v-btn>
+        <!--      <v-btn @click="submit_getSimilarCheaperProduct" class="custom-green-button">Absenden</v-btn>  -->
             </v-col>
           </v-row>
         </v-container>
@@ -214,17 +214,32 @@
               <v-text-field v-model="input_getOffers" label="Angebote für folgende ProduktID" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
-              <v-btn @click="submit_getOffers" class="custom-green-button">Absenden</v-btn>
+       <!--       <v-btn @click="submit_getOffers" class="custom-green-button">Absenden</v-btn>  -->
             </v-col>
           </v-row>
         </v-container>
       </v-card-text>
     </v-card>
     
-      <div v-if="output_getOffers" class="output-box">
-        <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
+    <get-offers 
+      ref="getOffers"
+      :product-id="input_getOffers" 
+      @api-result="handle_getOffers_result">
+      </get-offers>
+
+  
+     <div v-if="output_getOffers" class="output-box">
+        <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">AUSGABEFORMAT PRO ANGEBOT:
+          <br />AngebotsID, ProduktID, FilialID, Preis, Zustandsnummer, Menge, Filialname, Beschreibung
+        </p> 
         {{ output_getOffers }}
       </div>
+
+    <br>
+    <br>
+      
+
   </div>
 
 
@@ -248,18 +263,20 @@
   
    import GetProduct from "@/components/GetProduct";
    import GetProducts from "@/components/GetProducts";
-   import GetTopProducts from "@/components/GetTopProducts";
    import GetProductsByCategoryPath from "@/components/GetProductsByCategoryPath";
+   import GetTopProducts from "@/components/GetTopProducts";
    import GetSimilarCheaperProduct from "@/components/GetSimilarCheaperProduct";
+   import GetOffers from "@/components/GetOffers";
 
 
   export default{
     components: { // Komponenten einbinden
         GetProduct, 
         GetProducts,
-        GetTopProducts,
         GetProductsByCategoryPath,
+        GetTopProducts,
         GetSimilarCheaperProduct,
+        GetOffers,
   },
 
   data() {
@@ -297,7 +314,6 @@
       this.output_getProduct = result;
     },
     submit_getProductsPattern() {
-      //this.output_getProductsPattern = result;
       this.$refs.getProducts.callApi(this.input_getProductsPattern);
     }
     ,
@@ -325,15 +341,12 @@
     handle_getSimilarCheaperProduct_result(result) {
       this.output_getSimilarCheaperProduct = result;
     },
-
-
-
-
-
     submit_getOffers() {
-      this.output_getOffers = this.input_getOffers;
-              }
-
+      this.$refs.getOffers.callApi(this.input_getOffers);
+    },
+    handle_getOffers_result(result) {
+      this.output_getOffers = result;
+    },
 
     }
     };
