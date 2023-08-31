@@ -45,8 +45,9 @@ public class API_Services {
         return resultList;
     }
 
-    public List<ProduktEntity> getProductsForPattern(String pattern) {
-        List<ProduktEntity> resultList = produktRepository.getProducts(pattern);
+    public List<String> getProductsForPattern(String pattern) {
+
+        List<String> resultList = produktRepository.getProducts(pattern);
         return resultList;
     }
 

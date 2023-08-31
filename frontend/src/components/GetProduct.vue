@@ -10,6 +10,9 @@
     </div>
     -->
 
+
+    
+
 </template>
   
 
@@ -38,7 +41,8 @@
         try {
             // Führen Sie hier Ihren API-Aufruf durch und speichern Sie das Ergebnis in apiResult
             // Beispiel:
-            const apiUrl = `http://localhost:8080/get/getProduct?pid=${productId}`;
+            const encodedProductId = encodeURIComponent(productId);
+            const apiUrl = `http://localhost:8080/get/getProduct?pid=${encodedProductId}`;
             const response = await fetch(apiUrl);
 
             // Überprüfen Sie, ob die Anfrage erfolgreich war (Statuscode 200)

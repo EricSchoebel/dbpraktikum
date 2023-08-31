@@ -1,13 +1,5 @@
 <template>
 
-   
-
-
-
-   
-
-
-
 <main>
       <v-card rounded="0">
 
@@ -21,11 +13,9 @@
       </v-card>
 
 
-
-
   <div>
     <v-card>
-      <v-card-title>getProduct:</v-card-title>
+      <v-card-title style="color: rgb(14, 14, 184);">getProduct:</v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
@@ -58,20 +48,23 @@
         </p> 
         {{ output_getProduct }}
     </div>
-  
-
 
   <br>
   <br>
+
+
+
+
+
 
   <div>
     <v-card>
-      <v-card-title>getProducts(String pattern):</v-card-title>
+      <v-card-title style="color: rgb(14, 14, 184);">getProducts(String pattern):</v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
             <v-col cols="12" md="6">
-              <!-- Ihr Textfeld oder Inhalt hier -->
+              SQL-Wildcards nutzen, z.B. "%" für ein oder mehr Zeichen, "_" für ein einzelnes Zeichen <!-- Ihr Textfeld oder Inhalt hier -->
               <v-text-field v-model="input_getProductsPattern" label="Produkte mit Titel mit folgendem Muster" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -81,13 +74,45 @@
         </v-container>
       </v-card-text>
     </v-card>
-    
-    <div v-if="output_getProductsPattern" class="output-box">
-        <p class="result-heading">Ergebnis:</p><!-- Hinzugefügt -->
-        <p class="sub-heading">Unterüberschrift hier, oerer, gauki, dfhdiulfqiwefrew, feruifrewfr</p> 
+     
+  
+      <!-- Hier binden Sie die neue Komponente ein und übergeben die Eingabe als Eigenschaft -->
+      <get-products 
+      ref="getProducts"
+      :pattern="input_getProductsPattern" 
+      @api-result="handle_getProductsPattern_result">
+      </get-products>
+
+  
+     <div v-if="output_getProductsPattern" class="output-box">
+        <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel 
+        </p> 
         {{ output_getProductsPattern }}
-    </div>
+      </div>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   </div>
+
+  
+
+
+
+
+
+
+
+
+
 
 
   <br>
@@ -95,7 +120,7 @@
 
   <div>
     <v-card>
-      <v-card-title>getTopProducts:</v-card-title>
+      <v-card-title style="color: rgb(14, 14, 184);">getTopProducts:</v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
@@ -122,7 +147,7 @@
 
   <div>
     <v-card>
-      <v-card-title>getProductsByCategoryPath:</v-card-title>
+      <v-card-title style="color: rgb(14, 14, 184);">getProductsByCategoryPath:</v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
@@ -149,7 +174,7 @@
 
   <div>
     <v-card>
-      <v-card-title>getSimilarCheaperProduct:</v-card-title>
+      <v-card-title style="color: rgb(14, 14, 184);">getSimilarCheaperProduct:</v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
@@ -176,7 +201,7 @@
 
   <div>
     <v-card>
-      <v-card-title>getOffers:</v-card-title>
+      <v-card-title style="color: rgb(14, 14, 184);">getOffers:</v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
@@ -216,16 +241,15 @@
 </template>
 
 <script>
-    
-    
-    
-   /* import BarChart from "@/components/BarChart"  */
+  
    import GetProduct from "@/components/GetProduct";
+   import GetProducts from "@/components/GetProducts";
 
 
   export default{
-    components: {
-        GetProduct, // Komponente einbinden
+    components: { // Komponenten einbinden
+        GetProduct, 
+        GetProducts,
   },
 
   data() {
@@ -254,18 +278,29 @@
       // Das Ergebnis wird über die Methode handle_getProduct_result empfangen
       
       //TEST:
-      this.output_getProduct=this.input_getProduct;
+      //this.output_getProduct=this.input_getProduct;
 
-      //this.$refs.getProduct.callApi(this.input_getProduct);
+      this.$refs.getProduct.callApi(this.input_getProduct);
               }
     ,
     handle_getProduct_result(result) {
       this.output_getProduct = result;
     },
+
+
     submit_getProductsPattern() {
-      this.output_getProductsPattern = this.input_getProductsPattern;
+      //this.output_getProductsPattern = result;
+      this.$refs.getProducts.callApi(this.input_getProductsPattern)
               }
     ,
+    handle_getProductsPattern_result(result) {
+      this.output_getProductsPattern = result;
+    },
+
+
+
+
+
     submit_getTopProducts() {
       this.output_getTopProducts = this.input_getTopProducts;
               }

@@ -35,8 +35,9 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
             "WHERE p.pid = :productId")
     List<Object> getProduct(@Param("productId") String productId);
 
-    @Query("SELECT p FROM ProduktEntity p WHERE :pattern IS NULL OR p.titel LIKE %:pattern%")
-    List<ProduktEntity> getProducts(@Param("pattern") String pattern);
+    @Query("SELECT p.pid, p.titel FROM ProduktEntity p WHERE :pattern IS NULL OR p.titel LIKE :pattern") // statt LIKE %:pattern%
+    List<String> getProducts(@Param("pattern") String pattern);
+
 
     /*
     Idee: du kriegst mit Backslashen separierten Pfad,

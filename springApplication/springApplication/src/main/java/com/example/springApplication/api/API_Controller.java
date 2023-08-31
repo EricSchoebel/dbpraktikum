@@ -47,7 +47,7 @@ public class API_Controller {
     }
 
     @RequestMapping(value = "/get/getProducts", method = RequestMethod.GET)
-    public List<ProduktEntity> getProducts(@RequestParam(value = "pattern") String pattern) {
+    public List<String> getProducts(@RequestParam(value = "pattern") String pattern) {
         return api_services.getProductsForPattern(pattern);
     }
 
