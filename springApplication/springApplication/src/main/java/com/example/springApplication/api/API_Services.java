@@ -88,8 +88,8 @@ public class API_Services {
         return resultList;
     }
 
-    public List<ProduktEntity> getTopProducts(int k) { //bei gleichem Rating nach Titel (aufsteigend) geordnet
-        List<ProduktEntity> zwischenList = produktRepository.findByRatingIsNotNullOrderByRatingDescTitelAsc(k);
+    public List<String> getTopProducts(int k) { //bei gleichem Rating nach Titel (aufsteigend) geordnet
+        List<String> zwischenList = produktRepository.findByRatingIsNotNullOrderByRatingDescTitelAsc(k);
         zwischenList = zwischenList.subList(0, k);
         return zwischenList;
     }

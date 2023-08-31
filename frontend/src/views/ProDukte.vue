@@ -52,11 +52,6 @@
   <br>
   <br>
 
-
-
-
-
-
   <div>
     <v-card>
       <v-card-title style="color: rgb(14, 14, 184);">getProducts(String pattern):</v-card-title>
@@ -90,56 +85,6 @@
         </p> 
         {{ output_getProductsPattern }}
       </div>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  </div>
-
-  
-
-
-
-
-
-
-
-
-
-
-
-  <br>
-  <br>
-
-  <div>
-    <v-card>
-      <v-card-title style="color: rgb(14, 14, 184);">getTopProducts:</v-card-title>
-      <v-card-text>
-        <v-container>
-          <v-row>
-            <v-col cols="12" md="6">
-              <!-- Hier kann man noch direkt etwas hinschreiben wenn man will -->
-              <v-text-field v-model="input_getTopProducts" label="Top k Produkte für folgendes k" outlined></v-text-field>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-btn @click="submit_getTopProducts" class="custom-green-button">Absenden</v-btn>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card-text>
-    </v-card>
-    
-      <div v-if="output_getTopProducts" class="output-box">
-        <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
-        {{ output_getTopProducts }}
-      </div>
   </div>
 
   <br>
@@ -168,6 +113,50 @@
         {{ output_getProductsByCategoryPath }}
       </div>
   </div>
+
+
+  <br>
+  <br>
+
+  <div>
+    <v-card>
+      <v-card-title style="color: rgb(14, 14, 184);">getTopProducts:</v-card-title>
+      <v-card-text>
+        <v-container>
+          <v-row>
+            <v-col cols="12" md="6">
+              bei gleichem Rating Auswahl nach Titel (aufsteigend)
+              <v-text-field v-model="input_getTopProducts" label="Top k Produkte für folgendes k" outlined></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-btn @click="submit_getTopProducts" class="custom-green-button">Absenden</v-btn>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+    </v-card>
+    
+
+
+
+      <get-top-products 
+      ref="getTopProducts"
+      :k="input_getTopProducts" 
+      @api-result="handle_getTopProducts_result">
+      </get-top-products>
+
+  
+     <div v-if="output_getTopProducts" class="output-box">
+        <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel, Rating 
+        </p> 
+        {{ output_getTopProducts }}
+      </div>
+
+
+
+  </div>
+
 
   <br>
   <br>
@@ -244,12 +233,14 @@
   
    import GetProduct from "@/components/GetProduct";
    import GetProducts from "@/components/GetProducts";
+   import GetTopProducts from "@/components/GetTopProducts";
 
 
   export default{
     components: { // Komponenten einbinden
         GetProduct, 
         GetProducts,
+        GetTopProducts,
   },
 
   data() {
@@ -281,30 +272,31 @@
       //this.output_getProduct=this.input_getProduct;
 
       this.$refs.getProduct.callApi(this.input_getProduct);
-              }
+    }
     ,
     handle_getProduct_result(result) {
       this.output_getProduct = result;
     },
-
-
     submit_getProductsPattern() {
       //this.output_getProductsPattern = result;
-      this.$refs.getProducts.callApi(this.input_getProductsPattern)
-              }
+      this.$refs.getProducts.callApi(this.input_getProductsPattern);
+    }
     ,
     handle_getProductsPattern_result(result) {
       this.output_getProductsPattern = result;
+    },
+    submit_getTopProducts() {
+      this.$refs.getTopProducts.callApi(this.input_getTopProducts);
+    }
+    ,
+    handle_getTopProducts_result(result) {
+      this.output_getTopProducts = result;
     },
 
 
 
 
 
-    submit_getTopProducts() {
-      this.output_getTopProducts = this.input_getTopProducts;
-              }
-    ,
     submit_getProductsByCategoryPath() {
       this.output_getProductsByCategoryPath = this.input_getProductsByCategoryPath;
               }

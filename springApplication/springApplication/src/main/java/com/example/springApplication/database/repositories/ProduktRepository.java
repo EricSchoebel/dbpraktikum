@@ -55,8 +55,8 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
 
     //hier das public mit hinschreiben, sonst denkt IDE, dass Methode nicht genutzt wird
     //public List<ProduktEntity> findTopKByRatingIsNotNullOrderByRatingDescTitelAsc(int k); //fuer getTopProducts
-    @Query("SELECT p FROM ProduktEntity p WHERE p.rating IS NOT NULL ORDER BY p.rating DESC, p.titel ASC")
-    List<ProduktEntity> findByRatingIsNotNullOrderByRatingDescTitelAsc(int k); //fuer getTopProducts
+    @Query("SELECT p.pid, p.titel, p.rating FROM ProduktEntity p WHERE p.rating IS NOT NULL ORDER BY p.rating DESC, p.titel ASC")
+    List<String> findByRatingIsNotNullOrderByRatingDescTitelAsc(int k); //fuer getTopProducts
 
 
 
