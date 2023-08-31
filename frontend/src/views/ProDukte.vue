@@ -185,8 +185,17 @@
       </v-card-text>
     </v-card>
     
-      <div v-if="output_getSimilarCheaperProduct" class="output-box">
-        <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
+    <get-similar-cheaper-product 
+      ref="getSimilarCheaperProduct"
+      :product-id="input_getSimilarCheaperProduct" 
+      @api-result="handle_getSimilarCheaperProduct_result">
+      </get-similar-cheaper-product>
+
+  
+     <div v-if="output_getSimilarCheaperProduct" class="output-box">
+        <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel 
+        </p> 
         {{ output_getSimilarCheaperProduct }}
       </div>
   </div>
@@ -241,6 +250,7 @@
    import GetProducts from "@/components/GetProducts";
    import GetTopProducts from "@/components/GetTopProducts";
    import GetProductsByCategoryPath from "@/components/GetProductsByCategoryPath";
+   import GetSimilarCheaperProduct from "@/components/GetSimilarCheaperProduct";
 
 
   export default{
@@ -249,6 +259,7 @@
         GetProducts,
         GetTopProducts,
         GetProductsByCategoryPath,
+        GetSimilarCheaperProduct,
   },
 
   data() {
@@ -307,14 +318,18 @@
     handle_getProductsByCategoryPath_result(result) {
       this.output_getProductsByCategoryPath = result;
     },
-
-
-
-
     submit_getSimilarCheaperProduct() {
-      this.output_getSimilarCheaperProduct = this.input_getSimilarCheaperProduct;
-              }
+      this.$refs.getSimilarCheaperProduct.callApi(this.input_getSimilarCheaperProduct);
+    }
     ,
+    handle_getSimilarCheaperProduct_result(result) {
+      this.output_getSimilarCheaperProduct = result;
+    },
+
+
+
+
+
     submit_getOffers() {
       this.output_getOffers = this.input_getOffers;
               }

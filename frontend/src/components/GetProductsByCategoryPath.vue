@@ -23,8 +23,8 @@
         methods: {
           async callApi(path) {
             try {
-                const encodedPattern = encodeURIComponent(path);
-                const apiUrl = `http://localhost:8080/get/getProductsByCategoryPath?path=${path}`;
+                const encodedPath = encodeURIComponent(path);
+                const apiUrl = `http://localhost:8080/get/getProductsByCategoryPath?path=${encodedPath}`;
                 const response = await fetch(apiUrl);
     
                 if (response.ok) {
