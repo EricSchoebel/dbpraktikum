@@ -1,12 +1,12 @@
 <template>
     <div></div>
 
-</template>
+    </template>
     
 <script>
       export default {
         props: {
-          k: Number, 
+          path: String, 
         },
         data() {
           return {
@@ -14,17 +14,17 @@
           };
         },
         watch: {
-            k(newValue, oldValue) {
+            path(newValue, oldValue) {
             if (newValue !== oldValue) {
             this.callApi(newValue);
             }
           },
         },
         methods: {
-          async callApi(k) {
+          async callApi(path) {
             try {
-                const encodedPattern = encodeURIComponent(k);
-                const apiUrl = `http://localhost:8080/get/getTopProducts?k=${encodedPattern}`;
+                const encodedPattern = encodeURIComponent(path);
+                const apiUrl = `http://localhost:8080/get/getProductsByCategoryPath?path=${path}`;
                 const response = await fetch(apiUrl);
     
                 if (response.ok) {

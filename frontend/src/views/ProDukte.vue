@@ -108,8 +108,17 @@
       </v-card-text>
     </v-card>
     
-      <div v-if="output_getProductsByCategoryPath" class="output-box">
-        <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
+    <get-products-by-category-path
+      ref="getProductsByCategoryPath"
+      :path="input_getProductsByCategoryPath" 
+      @api-result="handle_getProductsByCategoryPath_result">
+      </get-products-by-category-path>
+
+  
+     <div v-if="output_getProductsByCategoryPath" class="output-box">
+        <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel 
+        </p> 
         {{ output_getProductsByCategoryPath }}
       </div>
   </div>
@@ -136,9 +145,6 @@
       </v-card-text>
     </v-card>
     
-
-
-
       <get-top-products 
       ref="getTopProducts"
       :k="input_getTopProducts" 
@@ -234,6 +240,7 @@
    import GetProduct from "@/components/GetProduct";
    import GetProducts from "@/components/GetProducts";
    import GetTopProducts from "@/components/GetTopProducts";
+   import GetProductsByCategoryPath from "@/components/GetProductsByCategoryPath";
 
 
   export default{
@@ -241,6 +248,7 @@
         GetProduct, 
         GetProducts,
         GetTopProducts,
+        GetProductsByCategoryPath,
   },
 
   data() {
@@ -292,15 +300,17 @@
     handle_getTopProducts_result(result) {
       this.output_getTopProducts = result;
     },
-
-
-
-
-
     submit_getProductsByCategoryPath() {
-      this.output_getProductsByCategoryPath = this.input_getProductsByCategoryPath;
-              }
+      this.$refs.getProductsByCategoryPath.callApi(this.input_getProductsByCategoryPath);
+    }
     ,
+    handle_getProductsByCategoryPath_result(result) {
+      this.output_getProductsByCategoryPath = result;
+    },
+
+
+
+
     submit_getSimilarCheaperProduct() {
       this.output_getSimilarCheaperProduct = this.input_getSimilarCheaperProduct;
               }

@@ -54,7 +54,7 @@ public class API_Controller {
     // /*
 
     @RequestMapping(value = "/get/getProductsByCategoryPath", method = RequestMethod.GET)
-    public List<ProduktEntity> getProductsByCategoryPath(@RequestParam(value = "path") String path) {
+    public List<String> getProductsByCategoryPath(@RequestParam(value = "path") String path) {
         return api_services.getProductsByCategoryPath(path); //jede einzelne ProduktEntity der Liste enthält jeweils pid und titel
     }
 
