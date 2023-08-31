@@ -41,11 +41,20 @@
       </v-card-text>
     </v-card>
     
-    <div v-if="output_getProduct" class="output-box">
-        <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
+    <!-- Hier binden Sie die neue Komponente ein und übergeben die Eingabe als Eigenschaft -->
+    <get-product 
+    ref="getProduct"
+    :product-id="input_getProduct" 
+    @api-result="handle_getProduct_result">
+    </get-product>
+
+  </div>
+     <div v-if="output_getProduct" class="output-box">
+        <p class="result-heading">Ergebnis:</p>
         {{ output_getProduct }}
     </div>
-  </div>
+  
+
 
   <br>
   <br>
@@ -204,11 +213,13 @@
     
     
    /* import BarChart from "@/components/BarChart"  */
-
+   import GetProduct from "@/components/GetProduct";
 
 
   export default{
-
+    components: {
+        GetProduct, // Komponente einbinden
+  },
 
   data() {
     return {
@@ -231,9 +242,15 @@
     submit_getProduct() {
       // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
       // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
-      this.output_getProduct = this.input_getProduct;
+
+      // Die Eingabe wird an die neue Komponente übergeben, wenn der "Absenden"-Button geklickt wird
+      // Das Ergebnis wird über die Methode handle_getProduct_result empfangen
+      this.$refs.getProduct.callApi(this.input_getProduct);
               }
     ,
+    handle_getProduct_result(result) {
+      this.output_getProduct = result;
+    },
     submit_getProductsPattern() {
       this.output_getProductsPattern = this.input_getProductsPattern;
               }
