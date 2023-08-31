@@ -51,6 +51,11 @@
   </div>
      <div v-if="output_getProduct" class="output-box">
         <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">AUSGABEFORMAT: ProduktID, Titel, Rating, Verkaufsrang,
+           <br />(falls Buch:) Seitenzahl, Erscheinungsdatum, ISBN, Verlag,
+           <br />(falls DVD:) Format, Laufzeit, Regioncode
+           <br />(falls CD:) Label, Erscheinungsdatum
+        </p> 
         {{ output_getProduct }}
     </div>
   
@@ -78,10 +83,12 @@
     </v-card>
     
     <div v-if="output_getProductsPattern" class="output-box">
-        <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
+        <p class="result-heading">Ergebnis:</p><!-- Hinzugefügt -->
+        <p class="sub-heading">Unterüberschrift hier, oerer, gauki, dfhdiulfqiwefrew, feruifrewfr</p> 
         {{ output_getProductsPattern }}
     </div>
   </div>
+
 
   <br>
   <br>
@@ -245,7 +252,11 @@
 
       // Die Eingabe wird an die neue Komponente übergeben, wenn der "Absenden"-Button geklickt wird
       // Das Ergebnis wird über die Methode handle_getProduct_result empfangen
-      this.$refs.getProduct.callApi(this.input_getProduct);
+      
+      //TEST:
+      this.output_getProduct=this.input_getProduct;
+
+      //this.$refs.getProduct.callApi(this.input_getProduct);
               }
     ,
     handle_getProduct_result(result) {
@@ -327,7 +338,7 @@
 }
 
 .result-heading {
-  font-size: 16px; /* Passen Sie die Schriftgröße an, falls erforderlich */
+  font-size: 20px; /* Passen Sie die Schriftgröße an, falls erforderlich */
   font-weight: bold; /* Fettformatierung für den Text "Ergebnis" */
   margin-bottom: 5px; /* Abstand unterhalb des Textes "Ergebnis" */
 }
@@ -335,6 +346,16 @@
 .larger-text {
   font-size: 20px; /* Passen Sie die Schriftgröße nach Bedarf an */
 }
+
+.sub-heading {
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 6px; /* Abstand nach oben hinzufügen */
+  white-space: normal; /* Standard-Zeilenverhalten wiederherstellen */
+  word-wrap: break-word; /* Zeilenumbruch bei langen Wörtern ermöglichen */
+}
+
+
 
 </style>
 
