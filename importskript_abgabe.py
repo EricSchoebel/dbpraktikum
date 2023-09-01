@@ -1969,6 +1969,10 @@ with connection.cursor() as aufraeumer:
     aufraeumer.execute(
         "UPDATE kundenrezension SET content = REPLACE(REPLACE(REPLACE(REPLACE(content, '&#228;', 'ä'), '&#246;', 'ö'), '&#252;', 'ü'), '&#8222;', '``');"
         )
+    connection.commit()
+    aufraeumer.execute(
+        "ALTER TABLE lieferadresse ADD CONSTRAINT pk_lieferadresse PRIMARY KEY (kundenid, strasse, hausnummer, plz);"
+        )
 connection.commit()
 
 connection.close()
