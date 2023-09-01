@@ -5,6 +5,8 @@ import com.example.springApplication.database.repositories.*;
 import com.example.springApplication.database.entities.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,6 +29,17 @@ public class API_Services {
     @Autowired
     KundeRepository kundeRepository;
 
+    private final ApplicationContext context;
+
+    @Autowired
+    public API_Services(ApplicationContext context) {
+        this.context = context;
+    }
+
+    public String finishApplication() {
+        SpringApplication.exit(context, () -> 0);
+        return "Die Anwendung wurde beendet. Bitte schließen Sie Ihren Browser.";
+    }
 
     //nur Testzweck:
     public List<ProduktEntity> oldGetTestProductInfoForID(String pid) {
@@ -38,7 +51,6 @@ public class API_Services {
         Optional<KundeEntity>  test = kundeRepository.findByKundenid(kundenid);
         return test;
     }
-
 
     public List<Object> getProductInfoForID(String pid) {
         List<Object> resultList = produktRepository.getProduct(pid);

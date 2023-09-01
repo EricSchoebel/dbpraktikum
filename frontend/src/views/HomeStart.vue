@@ -33,7 +33,14 @@
 <script>
 export default {
   methods: {
-    handleClick() {
+    async handleClick() {
+      try {
+                const apiUrl = `http://localhost:8080/finish`;
+                const response = await fetch(apiUrl);
+    
+      } catch (error) {
+              console.error('Fehler bei der API-Anfrage:', error);
+      }
       // Aktion bei klick
       alert('Anwendung wurde beendet. Bitte den Browser schließen.');
     }

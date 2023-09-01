@@ -1,13 +1,5 @@
 <template>
 
-   
-
-
-
-   
-
-
-
   <main>
         <v-card rounded="0">
   
@@ -66,7 +58,7 @@
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="input_Field1"
+                v-model="input_addNewReview_kundenid"
                 label="KundenID (PFLICHT)"
                 outlined
                 required
@@ -74,7 +66,7 @@
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="input_Field2"
+                v-model="input_addNewReview_pid"
                 label="ProduktID (PFLICHT)"
                 outlined
                 required
@@ -82,7 +74,7 @@
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="input_Field3"
+                v-model="input_addNewReview_punkte"
                 label="Punktbewert. (PFLICHT, Ganzahl von 1 bis 5)"
                 outlined
                 required
@@ -90,21 +82,21 @@
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="input_field4"
+                v-model="input_addNewReview_helpful"
                 label="Nützlichkeit (Ganzzahl, vzw. von 0 bis 300)"
                 outlined
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="input_field5"
+                v-model="input_addNewReview_summary"
                 label="Rezensionszusammenfassung (Text)"
                 outlined
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
-                v-model="input_field6"
+                v-model="input_addNewReview_content"
                 label="Rezensionsinhalt (Text)"
                 outlined
               ></v-text-field>
@@ -118,10 +110,24 @@
         </v-container>
       </v-card-text>
     </v-card>
-    <div v-if="output_addNewReview" class="output-box" style="padding-left: 10px; padding-right: 10px;">
-      <p class="result-heading">Ergebnis:</p>
-      {{ output_addNewReview }}
-    </div>
+
+    <add-new-review 
+      ref="addNewReview"
+      :kundenid="input_addNewReview_kundenid"
+      :pid="input_addNewReview_pid"
+      :punkte="input_addNewReview_punkte"
+      :helpful="input_addNewReview_helpful"
+      :summary="input_addNewReview_summary"
+      :content="input_addNewReview_content"  
+      :shouldSubmit="shouldSubmitAddNewReview"
+      @api-result="handle_addNewReview_result">
+    </add-new-review>
+  
+     <div v-if="output_addNewReview" class="output-box" style="padding-left: 10px; padding-right: 10px;">
+        <p class="result-heading"> </p>
+        {{ output_addNewReview }}
+     </div>
+
   </div>
 
   <br>
@@ -162,48 +168,34 @@
 
     </div>
 
-
+  </main>
   
+</template>
   
-  
-  
-  
-  
-  
-  
-  
-  
-    </main>
-  
-  
-      
-  
-  
-  </template>
-  
-  <script>
+<script>
       
      import GetReview from "@/components/GetReview";
+     import AddNewReview from "@/components/AddNewReview";
      import GetTrolls from "@/components/GetTrolls";
   
   
     export default{
     components: { // Komponenten einbinden
-        GetReview, 
+        GetReview,
+        AddNewReview, 
         GetTrolls,
     },
-  
-  
     data() {
       return {
         input_getReview: '',
         output_getReview: '',
-        input_Field1: "",
-        input_Field2: "",
-        input_Field3: "",
-        input_field4: "",
-        input_field5: "",
-        input_field6: "",
+        input_addNewReview_kundenid: "",
+        input_addNewReview_pid: "",
+        input_addNewReview_punkte: "",
+        input_addNewReview_helpful: "",
+        input_addNewReview_summary: "",
+        input_addNewReview_content: "",
+        shouldSubmitAddNewReview: false,
         output_addNewReview: "",
         input_getTrolls: '',
         output_getTrolls: '',
@@ -221,11 +213,15 @@
         this.output_getReview = result;
       },
       submit_addNewReview() {
-        // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
-        // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
-        this.output_addNewReview = "knopf_geht";
-                }
-      ,
+        this.shouldSubmitAddNewReview = true;
+        if (this.shouldSubmitAddNewReview){
+          this.$refs.addNewReview.callApi(this.input_addNewReview_kundenid, this.input_addNewReview_pid, this.input_addNewReview_punkte, 
+                                       this.input_addNewReview_helpful, this.input_addNewReview_summary, this.input_addNewReview_content);
+        }
+      },
+      handle_addNewReview_result(result) {
+        this.output_addNewReview = result;
+      },
       submit_getTrolls() {
         this.$refs.getTrolls.callApi(this.input_getTrolls);
       }
@@ -233,53 +229,12 @@
       handle_getTrolls_result(result) {
         this.output_getTrolls = result;
       },
-   
-  
-  
       }
       };
+
+</script>
   
-        /*
-  
-          components: { BarChart },
-          data () {
-              return {
-                 drawer:true,
-                 selectOrte: [],
-                 itemsOrte: [],
-                 selectKategorie: [],
-                 itemsKategorie: [],
-              }
-          },
-          methods:{
-            handleKategorie(data){
-                  this.itemsKategorie=data
-              },
-            handleOrte(data){
-                  this.itemsOrte=data
-              },
-            toggleSelectAll() {
-                  if (this.selectAll === true) {
-                    this.selectOrte = []
-                  } 
-                  else {
-                    this.selectOrte = this.itemsOrte
-                  }
-              }, 
-  
-          }
-          }
-          */
-  
-  
-  
-  
-  
-     
-  
-  </script>
-  
-  <style scoped>
+<style scoped>
 .custom-green-button {
   background-color: green;
   color: white;
@@ -310,6 +265,6 @@
 
 
   
-  </style>
+</style>
   
   

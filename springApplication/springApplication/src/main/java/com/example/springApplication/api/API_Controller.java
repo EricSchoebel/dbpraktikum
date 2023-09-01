@@ -38,8 +38,10 @@ public class API_Controller {
     }
 
 
-
-
+    @RequestMapping(value = "/finish", method = RequestMethod.GET)
+    public String finish() {
+        return api_services.finishApplication();
+    }
 
     @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
     public List<Object> getProduct(@RequestParam(value = "pid") String pid) {
@@ -75,14 +77,16 @@ public class API_Controller {
         return api_services.getReview(identifier);
     }
 
-    @PostMapping("/post/addNewReview")
-    public ResponseEntity<String> addNewReview( //reviewdate wird automatisch auf jeweiliges Datum gesetzt
-            @RequestParam(value ="kundenid") String kundenid,
-            @RequestParam(value ="pid") String pid,
-            @RequestParam(value = "punkte") int punkte,
-            @RequestParam(value = "helpful", required = false)  Optional<Integer> helpful,
-            @RequestParam(value = "summary", required = false) Optional<String> summary,
-            @RequestParam(value = "content", required = false) Optional<String> content) {
+    @RequestMapping(value= "/post/addNewReview", method = RequestMethod.POST)
+    public ResponseEntity<String> addNewReview(@RequestBody ReviewRequest reviewRequest) {
+
+        String kundenid = reviewRequest.getKundenid();
+        String pid = reviewRequest.getPid();
+        int punkte = reviewRequest.getPunkte();
+        Optional<Integer> helpful = reviewRequest.getHelpful();
+        Optional<String> summary = reviewRequest.getSummary();
+        Optional<String> content = reviewRequest.getContent();
+        //reviewdate wird automatisch auf jeweiliges Datum gesetzt
 
         // Validiere die Daten, z.B. ob "punkte" zwischen 1 und 5 liegt
         if ( ( !(punkte==1) && !(punkte==2) && !(punkte==3) && !(punkte==4) && !(punkte==5) ) ) {
