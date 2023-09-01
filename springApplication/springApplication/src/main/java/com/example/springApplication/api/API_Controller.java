@@ -1,7 +1,6 @@
 package com.example.springApplication.api;
 
 import com.example.springApplication.database.entities.*;
-import com.example.springApplication.database.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;

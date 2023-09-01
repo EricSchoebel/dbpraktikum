@@ -164,10 +164,6 @@ public class API_Services {
         }
     }
 
-
-
-
-
     public int addNewReview(String kundenid, String pid, int punkte,
                             Optional<Integer> helpful, Optional<String> summary, Optional<String> content) {
         try {
