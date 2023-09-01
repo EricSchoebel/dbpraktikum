@@ -98,8 +98,8 @@ public class API_Controller {
         }
         else{
             return ResponseEntity.ok("Es ist ein Fehler aufgetreten. " +
-                    "Mögliche Ursachen: ProduktID nicht gefunden, " +
-                    "Unter dieser KundenID wurde für diese ProduktID schon eine Rezension angelegt," +
+                 //alt:   "Mögliche Ursachen: ProduktID nicht gefunden, " +
+                //alt:    "Unter dieser KundenID wurde für diese ProduktID schon eine Rezension angelegt," +
                     "Punktbewertung keine Ganzzahl von 1 bis 5, ...");
         }
     }

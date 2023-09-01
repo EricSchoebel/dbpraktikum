@@ -120,14 +120,10 @@
       :summary="input_addNewReview_summary"
       :content="input_addNewReview_content"  
       :shouldSubmit="shouldSubmitAddNewReview"
-      @api-result="handle_addNewReview_result">
+      @refresherOk="handle_refresherOk"
+      @refresherNotOk="handle_refresherNotOk">
     </add-new-review>
   
-     <div v-if="output_addNewReview" class="output-box" style="padding-left: 10px; padding-right: 10px;">
-        <p class="result-heading"> </p>
-        {{ output_addNewReview }}
-     </div>
-
   </div>
 
   <br>
@@ -204,8 +200,6 @@
   
     methods: {
       submit_getReview() {
-        // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
-        // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
         this.$refs.getReview.callApi(this.input_getReview);
       }
       ,
@@ -219,13 +213,21 @@
                                        this.input_addNewReview_helpful, this.input_addNewReview_summary, this.input_addNewReview_content);
         }
       },
-      handle_addNewReview_result(result) {
-        this.output_addNewReview = result;
+      handle_refresherOk(result){
+        if (result){
+          alert('Rezension wurde gespeichert, falls ein Produkt unter dieser ProduktID vorhanden ist. Prüfen Sie Ihre Rezension über getReview.');
+          window.location.reload();
+        }
+      },
+      handle_refresherNotOk(result){
+        if (result){
+          alert('Ein Fehler ist aufgetreten. Beachten Sie die Eintragehinweise und versuchen Sie es erneut.');
+          window.location.reload();
+        }
       },
       submit_getTrolls() {
         this.$refs.getTrolls.callApi(this.input_getTrolls);
-      }
-      ,
+      },
       handle_getTrolls_result(result) {
         this.output_getTrolls = result;
       },
