@@ -49,7 +49,7 @@
      <div v-if="output_getReview" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">AUSGABEFORMAT PRO REZENSION:
-          <br />KundenID, ProduktID, Punkte, Nützlichkeit, Kurzfassung, Beschreibung, Datum
+          <br />KundenID, ProduktID, Punktbewertung, Nützlichkeit, Rezensionszusammenfassung, Rezensionsinhalt, Datum
         </p> 
         {{ output_getReview }}
       </div>
