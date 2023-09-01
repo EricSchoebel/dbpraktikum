@@ -1961,6 +1961,15 @@ with connection.cursor() as aufraeumer:
         )
     connection.commit()
     aufraeumer.execute(triggerstring)
+    connection.commit()
+    aufraeumer.execute(
+        "UPDATE kundenrezension SET content = REPLACE(REPLACE(content, '<BR>', ''), '<P>', '');"
+        )
+    connection.commit()
+    aufraeumer.execute(
+        "UPDATE kundenrezension SET content = REPLACE(REPLACE(REPLACE(REPLACE(content, '&#228;', 'ä'), '&#246;', 'ö'), '&#252;', 'ü'), '&#8222;', '``');"
+        )
 connection.commit()
 
 connection.close()
+

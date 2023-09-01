@@ -128,18 +128,27 @@ public class API_Services {
         return resultList;
     }
 
-    public List<KundenrezensionEntity> getReview(String kundenid, String pid) {
-        if (kundenid != null && pid.equals("*")) {
-            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReviewsSonderfall(kundenid);
-            return resultList;
-        }
-        else if (pid != null && kundenid.equals("*")) {
-            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReviewsSonderfallZwei(kundenid);
-            return resultList;
+    public List<String> getReview(String identifier) {
+
+        if (identifier.contains("/") && identifier.indexOf("/") == identifier.lastIndexOf("/")) {
+            String[] parts = identifier.split("/");
+            String kundenid = parts[0];
+            String pid = parts[1];
+
+            if (kundenid != null && pid.equals("*")) {
+                List<String> resultList = kundenrezensionRepository.getReviewsSonderfall(kundenid);
+                return resultList;
+            } else if (pid != null && kundenid.equals("*")) {
+                List<String> resultList = kundenrezensionRepository.getReviewsSonderfallZwei(kundenid);
+                return resultList;
+            } else {
+                List<String> resultList = kundenrezensionRepository.getReview(kundenid, pid);
+                return resultList;
+            }
         }
         else {
-            List<KundenrezensionEntity> resultList = kundenrezensionRepository.getReview(kundenid, pid);
-            return resultList;
+            List<String> exitList = new ArrayList<>();
+            return exitList;
         }
     }
 

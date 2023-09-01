@@ -33,17 +33,26 @@
                 <v-text-field v-model="input_getReview" label="Reviews für folgende Kombination aus KundenID und ProduktID" outlined></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <v-btn @click="submit_getReview" class="custom-green-button">Absenden</v-btn>
+           <!--     <v-btn @click="submit_getReview" class="custom-green-button">Absenden</v-btn>  -->
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
       </v-card>
       
-        <div v-if="output_getReview" class="output-box">
-          <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
-          {{ output_getReview }}
-        </div>
+      <get-review 
+      ref="getReview"
+      :identifier="input_getReview" 
+      @api-result="handle_getReview_result">
+      </get-review>
+  
+     <div v-if="output_getReview" class="output-box" style="padding-left: 10px; padding-right: 10px;">
+        <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">AUSGABEFORMAT PRO REZENSION:
+          <br />KundenID, ProduktID, Punkte, Nützlichkeit, Kurzfassung, Beschreibung, Datum
+        </p> 
+        {{ output_getReview }}
+      </div>
     </div>
 
     <br>
@@ -109,7 +118,7 @@
         </v-container>
       </v-card-text>
     </v-card>
-    <div v-if="output_addNewReview" class="output-box">
+    <div v-if="output_addNewReview" class="output-box" style="padding-left: 10px; padding-right: 10px;">
       <p class="result-heading">Ergebnis:</p>
       {{ output_addNewReview }}
     </div>
@@ -129,17 +138,28 @@
                 <v-text-field v-model="input_getTrolls" label="Nutzer, deren Durchschnittsbewertung unter folgendem Wert" outlined></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <v-btn @click="submit_getTrolls" class="custom-green-button">Absenden</v-btn>
+             <!--      <v-btn @click="submit_getTrolls" class="custom-green-button">Absenden</v-btn> -->
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
       </v-card>
       
-        <div v-if="output_getTrolls" class="output-box">
-          <p class="result-heading">Ergebnis:</p> <!-- Hinzugefügt -->
-          {{ output_getTrolls }}
-        </div>
+
+      <get-trolls 
+      ref="getTrolls"
+      :rating="input_getTrolls" 
+      @api-result="handle_getTrolls_result">
+      </get-trolls>
+  
+     <div v-if="output_getTrolls" class="output-box" style="padding-left: 10px; padding-right: 10px;">
+        <p class="result-heading">Ergebnis:</p>
+        <p class="sub-heading">LISTE SOLCHER NUTZER:
+        </p> 
+        {{ output_getTrolls }}
+      </div>
+
+
     </div>
 
 
@@ -163,13 +183,15 @@
   
   <script>
       
-      
-      
-     /* import BarChart from "@/components/BarChart"  */
-  
+     import GetReview from "@/components/GetReview";
+     import GetTrolls from "@/components/GetTrolls";
   
   
     export default{
+    components: { // Komponenten einbinden
+        GetReview, 
+        GetTrolls,
+    },
   
   
     data() {
@@ -192,9 +214,12 @@
       submit_getReview() {
         // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
         // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
-        this.output_getReview = this.input_getReview;
-                }
+        this.$refs.getReview.callApi(this.input_getReview);
+      }
       ,
+      handle_getReview_result(result) {
+        this.output_getReview = result;
+      },
       submit_addNewReview() {
         // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
         // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
@@ -202,11 +227,12 @@
                 }
       ,
       submit_getTrolls() {
-        // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
-        // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
-        this.output_getTrolls = this.input_getTrolls;
-                }
+        this.$refs.getTrolls.callApi(this.input_getTrolls);
+      }
       ,
+      handle_getTrolls_result(result) {
+        this.output_getTrolls = result;
+      },
    
   
   
@@ -254,25 +280,35 @@
   </script>
   
   <style scoped>
-  .custom-green-button {
-    background-color: green;
-    color: white;
-    margin-top: 10px;
-  }
-  
-  .output-box {
-    margin-left: 20px;
-  }
-  
-  .result-heading {
-    font-size: 16px; /* Passen Sie die Schriftgröße an, falls erforderlich */
-    font-weight: bold; /* Fettformatierung für den Text "Ergebnis" */
-    margin-bottom: 5px; /* Abstand unterhalb des Textes "Ergebnis" */
-  }
-  
-  .larger-text {
-    font-size: 20px; /* Passen Sie die Schriftgröße nach Bedarf an */
-  }
+.custom-green-button {
+  background-color: green;
+  color: white;
+  margin-top: 10px;
+}
+
+.output-box {
+  margin-left: 20px;
+}
+
+.result-heading {
+  font-size: 20px; /* Passen Sie die Schriftgröße an, falls erforderlich */
+  font-weight: bold; /* Fettformatierung für den Text "Ergebnis" */
+  margin-bottom: 5px; /* Abstand unterhalb des Textes "Ergebnis" */
+}
+
+.larger-text {
+  font-size: 20px; /* Passen Sie die Schriftgröße nach Bedarf an */
+}
+
+.sub-heading {
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 6px; /* Abstand nach oben hinzufügen */
+  white-space: normal; /* Standard-Zeilenverhalten wiederherstellen */
+  word-wrap: break-word; /* Zeilenumbruch bei langen Wörtern ermöglichen */
+}
+
+
   
   </style>
   

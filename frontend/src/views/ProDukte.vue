@@ -39,7 +39,7 @@
     </get-product>
 
   </div>
-     <div v-if="output_getProduct" class="output-box">
+     <div v-if="output_getProduct" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">AUSGABEFORMAT: ProduktID, Titel, Rating, Verkaufsrang,
            <br />(falls Buch:) Seitenzahl, Erscheinungsdatum, ISBN, Verlag,
@@ -79,7 +79,7 @@
       </get-products>
 
   
-     <div v-if="output_getProductsPattern" class="output-box">
+     <div v-if="output_getProductsPattern" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel 
         </p> 
@@ -115,7 +115,7 @@
       </get-products-by-category-path>
 
   
-     <div v-if="output_getProductsByCategoryPath" class="output-box">
+     <div v-if="output_getProductsByCategoryPath" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel 
         </p> 
@@ -152,7 +152,7 @@
       </get-top-products>
 
   
-     <div v-if="output_getTopProducts" class="output-box">
+     <div v-if="output_getTopProducts" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel, Rating 
         </p> 
@@ -192,7 +192,7 @@
       </get-similar-cheaper-product>
 
   
-     <div v-if="output_getSimilarCheaperProduct" class="output-box">
+     <div v-if="output_getSimilarCheaperProduct" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel 
         </p> 
@@ -228,7 +228,7 @@
       </get-offers>
 
   
-     <div v-if="output_getOffers" class="output-box">
+     <div v-if="output_getOffers" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">AUSGABEFORMAT PRO ANGEBOT:
           <br />AngebotsID, ProduktID, FilialID, Preis, Zustandsnummer, Menge, Filialname, Beschreibung

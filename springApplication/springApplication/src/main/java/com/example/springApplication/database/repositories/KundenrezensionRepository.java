@@ -12,14 +12,14 @@ import java.util.List;
 @Repository
 public interface KundenrezensionRepository extends JpaRepository<KundenrezensionEntity, KundenrezensionEntityPK> {
 
-    @Query("SELECT kr FROM KundenrezensionEntity kr WHERE kr.kundenid = :kundenid AND kr.pid = :pid")
-    List<KundenrezensionEntity> getReview(@Param("kundenid") String kundenid, @Param("pid") String pid);
+    @Query("SELECT kr.kundenid, kr.pid, kr.punkte, kr.helpful, kr.summary, kr.content, kr.reviewdate FROM KundenrezensionEntity kr WHERE kr.kundenid = :kundenid AND kr.pid = :pid")
+    List<String> getReview(@Param("kundenid") String kundenid, @Param("pid") String pid);
 
-    @Query("SELECT kr FROM KundenrezensionEntity kr WHERE kr.kundenid = :kundenid")
-    List<KundenrezensionEntity> getReviewsSonderfall(@Param("kundenid") String kundenid);
+    @Query("SELECT kr.kundenid, kr.pid, kr.punkte, kr.helpful, kr.summary, kr.content, kr.reviewdate FROM KundenrezensionEntity kr WHERE kr.kundenid = :kundenid")
+    List<String> getReviewsSonderfall(@Param("kundenid") String kundenid);
 
-    @Query("SELECT kr FROM KundenrezensionEntity kr WHERE kr.pid = :pid")
-    List<KundenrezensionEntity> getReviewsSonderfallZwei(@Param("pid") String pid);
+    @Query("SELECT kr.kundenid, kr.pid, kr.punkte, kr.helpful, kr.summary, kr.content, kr.reviewdate FROM KundenrezensionEntity kr WHERE kr.pid = :pid")
+    List<String> getReviewsSonderfallZwei(@Param("pid") String pid);
 
     @Query("SELECT kr.kundenid, AVG(kr.punkte) AS durchschnittsbewertung FROM KundenrezensionEntity kr GROUP BY kr.kundenid")
     List<Object[]> findDurchschnittsbewertungen();

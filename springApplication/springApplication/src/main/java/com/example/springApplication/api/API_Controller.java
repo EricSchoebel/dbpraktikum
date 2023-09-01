@@ -71,8 +71,8 @@ public class API_Controller {
     }
 
     @RequestMapping(value = "/get/getReview", method = RequestMethod.GET)
-    public List<KundenrezensionEntity> getReview(@RequestParam(value = "kundenid") String kundenid, @RequestParam(value = "pid") String pid) {
-        return api_services.getReview(kundenid, pid);
+    public List<String> getReview(@RequestParam(value = "identifier") String identifier) {
+        return api_services.getReview(identifier);
     }
 
     @PostMapping("/post/addNewReview")
