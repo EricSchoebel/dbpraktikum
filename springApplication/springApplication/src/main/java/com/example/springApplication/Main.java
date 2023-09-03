@@ -1,6 +1,7 @@
 package com.example.springApplication;
 
 import java.util.Scanner;
+import com.example.springApplication.api.API_Services;
 
 public class Main {
 
@@ -16,6 +17,7 @@ public class Main {
             if ("ja".equalsIgnoreCase(userInput)) {
                 initRequested = true;
                 Application app = new Application();
+                //System.out.println(getCategoryTree());
                 app.init(args);
                 scanner.close();
             } else if ("nein".equalsIgnoreCase(userInput)) {

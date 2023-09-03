@@ -113,6 +113,11 @@ public class API_Controller {
         return api_services.getOffers(pid);
     }
 
+    @RequestMapping(value = "/get/getCategoryTree", method = RequestMethod.GET)
+    public String getCategoryTree(){
+        return api_services.getCategoryTree();
+    }
+
 
 
 }

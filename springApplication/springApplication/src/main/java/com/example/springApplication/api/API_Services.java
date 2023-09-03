@@ -227,6 +227,36 @@ public class API_Services {
         return resultList;
     }
 
+    public String getCategoryTree(){
+        List<KategorieEntity> Hauptkategorien = kategorieRepository.getHauptkategorien();
+        StringBuilder json = new StringBuilder();
+        json.append("{ treedata: [");
+        for(KategorieEntity kategorie : Hauptkategorien){
+            json.append(buildCategoryTree(kategorie));
+        }
+        json.deleteCharAt(json.length() - 1);
+        json.append("] }");
+        return json.toString();
+    }
+
+    public String buildCategoryTree(KategorieEntity kategorie){
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("KategorieId:" + kategorie.getKatid());
+        sb.append(",");
+        sb.append("Kategoriename: " + kategorie.getKategoriename());
+        sb.append(",");
+        sb.append("Unterkategorien: [");
+        List<KategorieEntity> unterkategorien = kategorieRepository.getUnterkategorienByKategorienId(kategorie.getKatid());
+        for(KategorieEntity unterkategorie : unterkategorien){
+            buildCategoryTree(unterkategorie);
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append("]");
+        sb.append("{");
+        return sb.toString();
+    }
+
 
 
 }
