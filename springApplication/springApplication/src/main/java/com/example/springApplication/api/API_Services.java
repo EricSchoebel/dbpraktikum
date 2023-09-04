@@ -230,19 +230,24 @@ public class API_Services {
     public String getCategoryTree(){
         List<KategorieEntity> Hauptkategorien = kategorieRepository.getHauptkategorien();
         StringBuilder tree = new StringBuilder();
-        tree.append("-Wurzel").append("\n");
         for(KategorieEntity kategorie : Hauptkategorien){
-            tree.append(buildCategoryTree(kategorie));
+            tree.append(buildCategoryTree(kategorie,0));
         }
         return tree.toString();
     }
 
-    public String buildCategoryTree(KategorieEntity kategorie){
+    public String buildCategoryTree(KategorieEntity kategorie, int tiefe){
         StringBuilder sb = new StringBuilder();
-        sb.append("-").append(kategorie.getKategoriename()).append("\n");
+        for(int i = 0; i < tiefe; i++){
+            sb.append("    ");
+        }
+        sb.append("-");
+        sb.append(kategorie.getKategoriename());
+        sb.append(" (").append("Id: ").append(kategorie.getKatid()).append(")");
+        sb.append("\n");
         List<KategorieEntity> unterkategorien = kategorieRepository.getUnterkategorienByKategorienId(kategorie.getKatid());
         for(KategorieEntity unterkategorie : unterkategorien){
-            sb.append(buildCategoryTree(unterkategorie));
+            sb.append(buildCategoryTree(unterkategorie, tiefe+1));
         }
         return sb.toString();
     }
