@@ -17,7 +17,7 @@
           async callApi() {
             try {
 
-                const apiUrl = `http://localhost:8080/get/getTesting`; // const apiUrl = `http://localhost:8080/get/getCategoryTree`;
+                const apiUrl = `http://localhost:8080/get/getCategoryTree`; // const apiUrl = `http://localhost:8080/get/getCategoryTree`;
                 const response = await fetch(apiUrl);
     
                 if (response.ok) {
