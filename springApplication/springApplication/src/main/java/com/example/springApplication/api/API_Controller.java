@@ -36,6 +36,12 @@ public class API_Controller {
         return api_services.oldGetTestKunde(kundenid);
     }
 
+    //nur Testzweck:
+    @RequestMapping(value = "/get/getTesting", method = RequestMethod.GET)
+    public String getTesting(){
+        return "teststring";
+    }
+
 
     @RequestMapping(value = "/finish", method = RequestMethod.GET)
     public String finish() {
