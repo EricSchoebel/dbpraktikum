@@ -151,7 +151,7 @@ public class API_Services {
                 List<String> resultList = kundenrezensionRepository.getReviewsSonderfall(kundenid);
                 return resultList;
             } else if (pid != null && kundenid.equals("*")) {
-                List<String> resultList = kundenrezensionRepository.getReviewsSonderfallZwei(kundenid);
+                List<String> resultList = kundenrezensionRepository.getReviewsSonderfallZwei(pid);
                 return resultList;
             } else {
                 List<String> resultList = kundenrezensionRepository.getReview(kundenid, pid);
