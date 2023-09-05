@@ -1,6 +1,5 @@
 package com.example.springApplication.api;
 
-import com.example.springApplication.database.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -8,10 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-
-
-
-
 
 //API mit geforderten Funktionen
 
@@ -22,26 +17,6 @@ public class API_Controller {
     @Qualifier("API_Services")
     @Autowired
     API_Services api_services;
-
-
-    //nur Testzweck:
-    //muss man das returnte noch jsonifyen?
-    @RequestMapping(value = "/get/TestProductInformationForID", method = RequestMethod.GET)
-    public List<ProduktEntity> oldGetTestAllInformationForSpecificProduct(@RequestParam(value = "pid") String pid) {
-        return api_services.oldGetTestProductInfoForID(pid);
-    }
-    //nur Testzweck:
-    @RequestMapping(value = "/get/getTestKunde", method = RequestMethod.GET)
-    public Optional<KundeEntity> getTestKunde(@RequestParam(value = "kundenid") String kundenid) {
-        return api_services.oldGetTestKunde(kundenid);
-    }
-
-    //nur Testzweck:
-    @RequestMapping(value = "/get/getTesting", method = RequestMethod.GET)
-    public String getTesting(){
-        return "teststring";
-    }
-
 
     @RequestMapping(value = "/finish", method = RequestMethod.GET)
     public String finish() {
@@ -58,14 +33,15 @@ public class API_Controller {
         return api_services.getProductsForPattern(pattern);
     }
 
-    // /*
+    @RequestMapping(value = "/get/getCategoryTree", method = RequestMethod.GET)
+    public String getCategoryTree(){
+        return api_services.getCategoryTree();
+    }
 
     @RequestMapping(value = "/get/getProductsByCategoryPath", method = RequestMethod.GET)
     public List<String> getProductsByCategoryPath(@RequestParam(value = "path") String path) {
         return api_services.getProductsByCategoryPath(path); //jede einzelne ProduktEntity der Liste enthält jeweils pid und titel
     }
-
-    // */
 
     @RequestMapping(value = "/get/getTopProducts", method = RequestMethod.GET)
     public List<String> getTopProducts(@RequestParam(value = "k") int k) {
@@ -118,12 +94,6 @@ public class API_Controller {
     public List<Object[]> getOffers(@RequestParam(value = "pid") String pid) {
         return api_services.getOffers(pid);
     }
-
-    @RequestMapping(value = "/get/getCategoryTree", method = RequestMethod.GET)
-    public String getCategoryTree(){
-        return api_services.getCategoryTree();
-    }
-
 
 
 }

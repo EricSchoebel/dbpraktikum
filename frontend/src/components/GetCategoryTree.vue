@@ -17,21 +17,12 @@
           async callApi() {
             try {
 
-                const apiUrl = `http://localhost:8080/get/getCategoryTree`; // const apiUrl = `http://localhost:8080/get/getCategoryTree`;
+                const apiUrl = `http://localhost:8080/get/getCategoryTree`; 
                 const response = await fetch(apiUrl);
     
                 if (response.ok) {
-
-                    // SO WENN ES JSON FORMAT IST:    const data = await response  ; //.json();
-                    
-                    //SO WENN ES KEIN JSON IST:
                     const data = await response.text();
-
                     this.apiResult = data; 
-
-                    //const decodedApiResult = decodeURIComponent(this.apiResult);
-                    //this.$emit('api-result', decodedApiResult);
-
                     this.$emit('api-result', this.apiResult);
                 } else {
                     console.error('Fehler bei der API-Anfrage:', response.statusText);

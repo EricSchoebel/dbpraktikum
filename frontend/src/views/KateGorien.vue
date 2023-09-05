@@ -42,11 +42,11 @@
      <div v-if="output_getCategoryTree" class="output-box" style="padding-left: 10px; padding-right: 10px;">
          <meta charset="UTF-8"> 
         <p class="result-heading">Ergebnis:</p>
-        <p class="sub-heading">FORMAT :  ...
-          <br />..
+        <p class="sub-heading">(Einrückung für jeweilige Unterkategorie)
+          <br />  
         </p> 
-         {{ output_getCategoryTree }} 
-       <!-- <div v-html="output_getCategoryTree"></div> -->
+       <div v-html="decodeEscapedString(output_getCategoryTree)"></div>
+
       </div>
     </div>
 
@@ -85,15 +85,20 @@
        handle_getCategoryTree_result(result) {
          this.output_getCategoryTree = result;
        },
+       decodeEscapedString(escapedString) {
+          let decodedString = escapedString
+          // Ersetze andere Zeichen, die codiert sind, wie ä, ü, ö, usw.
+          decodedString = decodedString.replace(/\\u([0-9a-fA-F]{4})/g, (match) => {
+              return String.fromCharCode(parseInt(match.substr(2), 16));
+          });  
+          return decodedString;
+      },
       }
 
        
     };
  
  </script>
-
-
-
 
 <style scoped>
 .custom-green-button {

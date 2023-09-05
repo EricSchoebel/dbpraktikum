@@ -1,6 +1,5 @@
 package com.example.springApplication.api;
 
-
 import com.example.springApplication.database.repositories.*;
 import com.example.springApplication.database.entities.*;
 
@@ -43,17 +42,6 @@ public class API_Services {
         return "Die Anwendung wurde beendet. Bitte schließen Sie Ihren Browser.";
     }
 
-    //nur Testzweck:
-    public List<ProduktEntity> oldGetTestProductInfoForID(String pid) {
-        List<ProduktEntity> resultList = produktRepository.findAllByPid(pid);
-        return resultList;
-    }
-    //nur Testzweck:
-    public Optional<KundeEntity> oldGetTestKunde(String kundenid) {
-        Optional<KundeEntity>  test = kundeRepository.findByKundenid(kundenid);
-        return test;
-    }
-
     public List<Object> getProductInfoForID(String pid) {
         List<Object> resultList = produktRepository.getProduct(pid);
         return resultList;
@@ -63,6 +51,32 @@ public class API_Services {
 
         List<String> resultList = produktRepository.getProducts(pattern);
         return resultList;
+    }
+
+    public String getCategoryTree(){
+        List<KategorieEntity> Hauptkategorien = kategorieRepository.getHauptkategorien();
+        StringBuilder tree = new StringBuilder();
+        for(KategorieEntity kategorie : Hauptkategorien){
+            tree.append(buildCategoryTree(kategorie,0));
+        }
+        String escapedString = StringEscapeUtils.escapeEcmaScript(tree.toString());
+        return escapedString;
+    }
+
+    public String buildCategoryTree(KategorieEntity kategorie, int tiefe){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < tiefe; i++){
+            sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+        }
+        sb.append("-");
+        sb.append(kategorie.getKategoriename());
+        sb.append(" (").append("Id: ").append(kategorie.getKatid()).append(")");
+        sb.append("<br>");
+        List<KategorieEntity> unterkategorien = kategorieRepository.getUnterkategorienByKategorienId(kategorie.getKatid());
+        for(KategorieEntity unterkategorie : unterkategorien){
+            sb.append(buildCategoryTree(unterkategorie, tiefe+1));
+        }
+        return sb.toString();
     }
 
     /*
@@ -229,33 +243,5 @@ public class API_Services {
         return resultList;
     }
 
-    public String getCategoryTree(){
-        List<KategorieEntity> Hauptkategorien = kategorieRepository.getHauptkategorien();
-        StringBuilder tree = new StringBuilder();
-        for(KategorieEntity kategorie : Hauptkategorien){
-            tree.append(buildCategoryTree(kategorie,0));
-        }
 
-        //VERSUCH
-        //String escapedString = StringEscapeUtils.escapeEcmaScript(tree.toString());
-        //return escapedString;
-
-        return tree.toString();
-    }
-
-    public String buildCategoryTree(KategorieEntity kategorie, int tiefe){
-        StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < tiefe; i++){
-            sb.append("    ");
-        }
-        sb.append("-");
-        sb.append(kategorie.getKategoriename());
-        sb.append(" (").append("Id: ").append(kategorie.getKatid()).append(")");
-        sb.append("\n");
-        List<KategorieEntity> unterkategorien = kategorieRepository.getUnterkategorienByKategorienId(kategorie.getKatid());
-        for(KategorieEntity unterkategorie : unterkategorien){
-            sb.append(buildCategoryTree(unterkategorie, tiefe+1));
-        }
-        return sb.toString();
-    }
 }
