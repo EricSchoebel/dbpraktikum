@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import org.apache.commons.text.StringEscapeUtils;
+
 @Service
 public class API_Services {
 
@@ -233,6 +235,11 @@ public class API_Services {
         for(KategorieEntity kategorie : Hauptkategorien){
             tree.append(buildCategoryTree(kategorie,0));
         }
+
+        //VERSUCH
+        //String escapedString = StringEscapeUtils.escapeEcmaScript(tree.toString());
+        //return escapedString;
+
         return tree.toString();
     }
 

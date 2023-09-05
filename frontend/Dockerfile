@@ -3,4 +3,5 @@ WORKDIR /app
 COPY frontend/. .
 
 RUN npm install --legacy-peer-deps
+
 CMD ["npm", "run", "serve"]

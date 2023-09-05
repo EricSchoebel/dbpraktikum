@@ -1,7 +1,6 @@
 <template>
 
 
- 
   <main>
         <v-card rounded="0">
   
@@ -38,14 +37,20 @@
       @api-result="handle_getCategoryTree_result">
       </get-category-tree>
   
+
+
      <div v-if="output_getCategoryTree" class="output-box" style="padding-left: 10px; padding-right: 10px;">
+         <meta charset="UTF-8"> 
         <p class="result-heading">Ergebnis:</p>
         <p class="sub-heading">FORMAT :  ...
           <br />..
         </p> 
-        {{ output_getCategoryTree }}
+         {{ output_getCategoryTree }} 
+       <!-- <div v-html="output_getCategoryTree"></div> -->
       </div>
     </div>
+
+
 
     <br>
     <br>
@@ -55,7 +60,7 @@
   
 </template>
 
-    
+
 
 
 <script>
@@ -119,8 +124,9 @@
   word-wrap: break-word; /* Zeilenumbruch bei langen Wörtern ermöglichen */
 }
 
-
   
 </style>
   
-  
+
+   
+
