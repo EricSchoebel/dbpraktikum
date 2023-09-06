@@ -136,6 +136,7 @@ public class API_Services {
         combinedList.addAll(listSimilarB);
         Set<String> uniqueSet = new HashSet<>(combinedList);
         List<String> listSimilar = new ArrayList<>(uniqueSet);
+        listSimilar.add(pid);
 
         List<String> listCheaper = angebotRepository.getCheaperProductsForPidHilfs(pid);
 
