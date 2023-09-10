@@ -48,8 +48,17 @@ public class API_Services {
     }
 
     public List<String> getProductsForPattern(String pattern) {
+        List<String> resultList = new ArrayList<>();
+        if(pattern.isEmpty()){
+            resultList = produktRepository.getProducts("%");
+        }
+        else{
+            resultList = produktRepository.getProducts(pattern);
+        }
 
-        List<String> resultList = produktRepository.getProducts(pattern);
+        //List<String> resultList = produktRepository.getProducts(pattern);
+        //testweise
+        //System.out.println(pattern);
         return resultList;
     }
 
