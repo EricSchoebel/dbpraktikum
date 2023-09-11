@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lieferadresse", schema = "public", catalog = "dbprak_postgres")
 @IdClass(LieferadresseEntityPK.class)
-public class LieferAdresseEntity {
+public class LieferadresseEntity {
     @Id
     @Column(name = "kundenid")
     private String kundenid;
@@ -44,7 +44,7 @@ public class LieferAdresseEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        LieferAdresseEntity that = (LieferAdresseEntity) o;
+        LieferadresseEntity that = (LieferadresseEntity) o;
         return Objects.equals(kundenid, that.kundenid) && Objects.equals(strasse, that.strasse) && Objects.equals(hausnummer, that.hausnummer) && Objects.equals(plz, that.plz);
     }
 

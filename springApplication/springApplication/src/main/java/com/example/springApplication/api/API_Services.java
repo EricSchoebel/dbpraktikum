@@ -49,7 +49,7 @@ public class API_Services {
 
     public List<String> getProductsForPattern(String pattern) {
         List<String> resultList = new ArrayList<>();
-        if(pattern.isEmpty()){
+        if(pattern.isEmpty() || pattern == null || pattern.equals("null")){
             resultList = produktRepository.getProducts("%");
         }
         else{
