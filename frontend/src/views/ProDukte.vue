@@ -41,12 +41,7 @@
   </div>
      <div v-if="output_getProduct" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
-        <p class="sub-heading">AUSGABEFORMAT: ProduktID, Titel, Rating, Verkaufsrang,
-           <br />(falls Buch:) Seitenzahl, Erscheinungsdatum, ISBN, Verlag,
-           <br />(falls DVD:) Format, Laufzeit, Regioncode
-           <br />(falls CD:) Label, Erscheinungsdatum
-        </p> 
-        {{ output_getProduct }}
+       <div v-html="decodeEscapedString(output_getProduct)"></div>
     </div>
 
   <br>
@@ -346,6 +341,15 @@
     },
     handle_getOffers_result(result) {
       this.output_getOffers = result;
+    },
+
+    decodeEscapedString(escapedString) {
+      let decodedString = escapedString
+      // Ersetze andere Zeichen, die codiert sind, wie ä, ü, ö, usw.
+      decodedString = decodedString.replace(/\\u([0-9a-fA-F]{4})/g, (match) => {
+        return String.fromCharCode(parseInt(match.substr(2), 16));
+      });
+      return decodedString;
     },
 
     }

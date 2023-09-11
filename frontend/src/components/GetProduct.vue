@@ -47,7 +47,7 @@
 
             // Überprüfen Sie, ob die Anfrage erfolgreich war (Statuscode 200)
             if (response.ok) {
-            const data = await response.json();
+            const data = await response.text();
             this.apiResult = data; // Das Ergebnis in apiResult speichern
             // Senden Sie das Ergebnis an die übergeordnete Ansicht
             this.$emit('api-result', this.apiResult);

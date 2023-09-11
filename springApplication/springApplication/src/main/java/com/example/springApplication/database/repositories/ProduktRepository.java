@@ -21,7 +21,7 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     //@Query("SELECT p FROM ProduktEntity p WHERE p.pid = :pid")
     //List<ProduktEntity> findProductsByPid(@Param("pid") String pid);
 
-
+    /*
     @Query("SELECT p.pid, p.titel, p.rating, p.verkaufsrang, " +
            // "p.bild, " +      // ist fuer Endanwender nur kryptisch
             "b.seitenzahl, b.erscheinungsdatum, b.isbn, b.verlag, "+
@@ -33,6 +33,10 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
             "LEFT JOIN CdEntity c ON p.pid = c.pid " +
             "WHERE p.pid = :productId")
     List<Object> getProduct(@Param("productId") String productId);
+     */
+
+    @Query("SELECT p FROM ProduktEntity p WHERE p.pid = :productId")
+    ProduktEntity getProduct2(@Param("productId") String productId);
 
     @Query("SELECT p.pid, p.titel, p.rating, p.verkaufsrang, b.seitenzahl, b.erscheinungsdatum, b.isbn, b.verlag "+
             "FROM ProduktEntity p LEFT JOIN BuchEntity b ON p.pid = b.pid " +
@@ -48,13 +52,6 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
             "FROM ProduktEntity p LEFT JOIN DvdEntity d ON p.pid = d.pid " +
             "WHERE p.pid = :productId")
     List<Object> getDvd(@Param("productId") String productId);
-
-    //--------------ALTERNATIVE VERSION---------------------
-
-    @Query("SELECT p FROM ProduktEntity p WHERE p.pid = :productId")
-    ProduktEntity getProduct2(@Param("productId") String productId);
-
-    //------------------------------------------------
 
     @Query("SELECT p.pid, p.titel FROM ProduktEntity p WHERE :pattern IS NULL OR p.titel LIKE :pattern") // statt LIKE %:pattern%
     List<String> getProducts(@Param("pattern") String pattern);

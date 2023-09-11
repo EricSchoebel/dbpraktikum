@@ -23,12 +23,14 @@ public class API_Controller {
         return api_services.finishApplication();
     }
 
-    @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
+    /*
+    @RequestMapping(value = "/get/getProduct2", method = RequestMethod.GET)
     public List<Object> getProduct(@RequestParam(value = "pid") String pid) {
         return api_services.getProductInfoForID(pid);
     }
+     */
 
-    @RequestMapping(value = "/get/getProduct2", method = RequestMethod.GET)
+    @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
     public String getProduct2(@RequestParam(value = "pid") String pid) {
         return api_services.getProductInfoForID2(pid);
     }
