@@ -31,6 +31,12 @@ public class API_Services {
     KundeRepository kundeRepository;
 
     private final ApplicationContext context;
+    @Autowired
+    private BuchRepository buchRepository;
+    @Autowired
+    private CdRepository cdRepository;
+    @Autowired
+    private DvdRepository dvdRepository;
 
     @Autowired
     public API_Services(ApplicationContext context) {
@@ -45,6 +51,45 @@ public class API_Services {
     public List<Object> getProductInfoForID(String pid) {
         List<Object> resultList = produktRepository.getProduct(pid);
         return resultList;
+    }
+
+    /*
+    AUSGABEFORMAT: ProduktID, Titel, Rating, Verkaufsrang,
+(falls Buch:) Seitenzahl, Erscheinungsdatum, ISBN, Verlag,
+(falls DVD:) Format, Laufzeit, Regioncode
+(falls CD:) Label, Erscheinungsdatum
+     */
+    public String getProductInfoForID2(String pid) {
+        StringBuilder sb = new StringBuilder();
+        ProduktEntity produkt = produktRepository.getProduct2(pid);
+
+        if(produkt != null){
+            sb.append("ProduktID: ").append(produkt.getPid()).append("<br>");
+            sb.append("Titel: ").append(produkt.getTitel()).append("<br>");
+            sb.append("Rating: ").append(produkt.getRating()).append("<br>");
+            sb.append("Verkaufsrang: ").append(produkt.getVerkaufsrang()).append("<br>");
+        }
+
+        if(buchRepository.getBuch(pid) != null){
+            BuchEntity buch = buchRepository.getBuch(pid);
+            sb.append("Seitenzahl: ").append(buch.getSeitenzahl()).append("<br>");
+            sb.append("Erscheinungsdatum: ").append(buch.getErscheinungsdatum()).append("<br>");
+            sb.append("ISBN: ").append(buch.getIsbn()).append("<br>");
+            sb.append("Verlag: ").append(buch.getVerlag()).append("<br>");
+        }
+        if(cdRepository.getCd(pid) != null){
+            CdEntity cd = cdRepository.getCd(pid);
+            sb.append("Seitenzahl: ").append(cd.getLabel()).append("<br>");
+            sb.append("Erscheinungsdatum: ").append(cd.getErscheinungsdatum()).append("<br>");
+        }
+        if(dvdRepository.getDvd(pid) != null){
+            DvdEntity dvd = dvdRepository.getDvd(pid);
+            sb.append("Format: ").append(dvd.getFormat()).append("<br>");
+            sb.append("Laufzeit: ").append(dvd.getLaufzeit()).append("<br>");
+            sb.append("Regioncode: ").append(dvd.getRegioncode()).append("<br>");
+        }
+        System.out.println(sb.toString());
+        return sb.toString();
     }
 
     public List<String> getProductsForPattern(String pattern) {

@@ -28,6 +28,14 @@ public class API_Controller {
         return api_services.getProductInfoForID(pid);
     }
 
+    /*
+    ALTERNATIVE VERSION
+    @RequestMapping(value = "/get/getProduct", method = RequestMethod.GET)
+    public String getProduct(@RequestParam(value = "pid") String pid) {
+        return api_services.getProductInfoForID2(pid);
+    }
+     */
+
     @RequestMapping(value = "/get/getProducts", method = RequestMethod.GET)
     public List<String> getProducts(@RequestParam(value = "pattern") String pattern) {
         return api_services.getProductsForPattern(pattern);

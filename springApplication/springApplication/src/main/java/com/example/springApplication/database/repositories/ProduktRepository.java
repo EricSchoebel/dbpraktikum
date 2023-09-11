@@ -2,8 +2,7 @@ package com.example.springApplication.database.repositories;
 
 //import database.entities.RechnerId;
 
-import com.example.springApplication.database.entities.ProduktEntity;
-import com.example.springApplication.database.entities.ProduktKategorieEntity;
+import com.example.springApplication.database.entities.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,6 +33,28 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
             "LEFT JOIN CdEntity c ON p.pid = c.pid " +
             "WHERE p.pid = :productId")
     List<Object> getProduct(@Param("productId") String productId);
+
+    @Query("SELECT p.pid, p.titel, p.rating, p.verkaufsrang, b.seitenzahl, b.erscheinungsdatum, b.isbn, b.verlag "+
+            "FROM ProduktEntity p LEFT JOIN BuchEntity b ON p.pid = b.pid " +
+            "WHERE p.pid = :productId")
+    List<Object> getBuch(@Param("productId") String productId);
+
+    @Query("SELECT p.pid, p.titel, p.rating, p.verkaufsrang, c.label, c.erscheinungsdatum "+
+            "FROM ProduktEntity p LEFT JOIN CdEntity c ON p.pid = c.pid " +
+            "WHERE p.pid = :productId")
+    List<Object> getCd(@Param("productId") String productId);
+
+    @Query("SELECT p.pid, p.titel, p.rating, p.verkaufsrang, d.format, d.laufzeit, d.regioncode "+
+            "FROM ProduktEntity p LEFT JOIN DvdEntity d ON p.pid = d.pid " +
+            "WHERE p.pid = :productId")
+    List<Object> getDvd(@Param("productId") String productId);
+
+    //--------------ALTERNATIVE VERSION---------------------
+
+    @Query("SELECT p FROM ProduktEntity p WHERE p.pid = :productId")
+    ProduktEntity getProduct2(@Param("productId") String productId);
+
+    //------------------------------------------------
 
     @Query("SELECT p.pid, p.titel FROM ProduktEntity p WHERE :pattern IS NULL OR p.titel LIKE :pattern") // statt LIKE %:pattern%
     List<String> getProducts(@Param("pattern") String pattern);
