@@ -72,6 +72,7 @@ public class API_Services {
 
         if(buchRepository.getBuch(pid) != null){
             BuchEntity buch = buchRepository.getBuch(pid);
+            sb.insert(0, "Art des Produkts: Buch <br>");
             sb.append("Seitenzahl: ").append(buch.getSeitenzahl()).append("<br>");
             sb.append("Erscheinungsdatum: ").append(buch.getErscheinungsdatum()).append("<br>");
             sb.append("ISBN: ").append(buch.getIsbn()).append("<br>");
@@ -79,13 +80,15 @@ public class API_Services {
         }
         if(cdRepository.getCd(pid) != null){
             CdEntity cd = cdRepository.getCd(pid);
+            sb.insert(0, "Art des Produkts: CD <br>");
             sb.append("Seitenzahl: ").append(cd.getLabel()).append("<br>");
             sb.append("Erscheinungsdatum: ").append(cd.getErscheinungsdatum()).append("<br>");
         }
         if(dvdRepository.getDvd(pid) != null){
             DvdEntity dvd = dvdRepository.getDvd(pid);
+            sb.insert(0, "Art des Produkts: DVD <br>");
             sb.append("Format: ").append(dvd.getFormat()).append("<br>");
-            sb.append("Laufzeit: ").append(dvd.getLaufzeit()).append("<br>");
+            sb.append("Laufzeit in Minuten: ").append(dvd.getLaufzeit()).append("<br>");
             sb.append("Regioncode: ").append(dvd.getRegioncode()).append("<br>");
         }
         System.out.println(sb.toString());
