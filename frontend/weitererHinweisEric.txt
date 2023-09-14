@@ -1,1 +1,0 @@
-hier käme frontend zeug rein, falls Vue und Vuetify dann ähnlich zu SWT-praktikumsordner frontend

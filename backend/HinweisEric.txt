@@ -1,1 +1,0 @@
-hier kaeme java backend rein aka logik, jpa/hibernate i guess

@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    hostname: 'dbprak_postgres.container' #bei der pg admin connection
+    container_name: 'dbprak_postgres'
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=dbprak_postgres #bei der pg admin connection
+      - POSTGRES_PASSWORD=dbprak_postgres #bei der pg admin connection
+      - POSTGRES_DB=dbprak_postgres
+    ports:
+      - "6432:5432" #bei pg admin connection dann scheinbar 5432 auswaehlen?
+    volumes: 
+      - postgres-data:/var/lib/postgresql/data
+      # copy sql script to create initial tables etc.
+      # - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - dbprak_postgres
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: 'dbprak_pgadmin'
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=wir13fjs@studserv.uni-leipzig.de
+      - PGADMIN_DEFAULT_PASSWORD=dbprak
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+    ports:
+      - "6050:80"
+    depends_on:
+      - postgres
+    networks:
+      - dbprak_postgres
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: dbprak_frontend
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  pgadmin:
+
+networks:
+  dbprak_postgres:
