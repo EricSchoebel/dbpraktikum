@@ -1,12 +1,9 @@
 package com.example.springApplication.database.repositories;
 
-import com.example.springApplication.database.entities.CdEntity;
 import com.example.springApplication.database.entities.DvdEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
 
 public interface DvdRepository extends JpaRepository<DvdEntity, String> {
 

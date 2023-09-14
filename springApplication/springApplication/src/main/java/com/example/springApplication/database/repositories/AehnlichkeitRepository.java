@@ -2,7 +2,6 @@ package com.example.springApplication.database.repositories;
 
 import com.example.springApplication.database.entities.AehnlichkeitEntity;
 import com.example.springApplication.database.entities.AehnlichkeitEntityPK;
-import com.example.springApplication.database.entities.ProduktEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

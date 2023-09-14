@@ -1,7 +1,5 @@
 package com.example.springApplication.database.repositories;
 
-//import database.entities.RechnerId;
-
 import com.example.springApplication.database.entities.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +18,6 @@ public interface ProduktRepository extends JpaRepository<ProduktEntity, String> 
     // Äquivalent:
     //@Query("SELECT p FROM ProduktEntity p WHERE p.pid = :pid")
     //List<ProduktEntity> findProductsByPid(@Param("pid") String pid);
-
     /*
     @Query("SELECT p.pid, p.titel, p.rating, p.verkaufsrang, " +
            // "p.bild, " +      // ist fuer Endanwender nur kryptisch

@@ -1,8 +1,5 @@
 package com.example.springApplication.database.repositories;
 
-
-//import database.entities.RechnerId;
-
 import com.example.springApplication.database.entities.ProduktKategorieEntity;
 import com.example.springApplication.database.entities.ProduktKategorieEntityPK;
 import org.springframework.data.jpa.repository.JpaRepository;
