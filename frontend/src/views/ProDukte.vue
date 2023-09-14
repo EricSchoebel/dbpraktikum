@@ -20,7 +20,7 @@
         <v-container>
           <v-row>
             <v-col cols="12" md="6">
-              <!-- Ihr Textfeld oder Inhalt hier -->
+              <!-- Textfeld oder Inhalt hier -->
               <v-text-field v-model="input_getProduct" label="Produktinfos für folgende ProduktID" outlined></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -31,7 +31,7 @@
       </v-card-text>
     </v-card>
     
-    <!-- Hier binden Sie die neue Komponente ein und übergeben die Eingabe als Eigenschaft -->
+    <!-- neue Komponente einbinden und übergeben die Eingabe als Eigenschaft -->
     <get-product 
     ref="getProduct"
     :product-id="input_getProduct" 
@@ -66,7 +66,7 @@
     </v-card>
      
   
-      <!-- Hier binden Sie die neue Komponente ein und übergeben die Eingabe als Eigenschaft -->
+
       <get-products 
       ref="getProducts"
       :pattern="input_getProductsPattern" 
@@ -293,15 +293,6 @@
 
   methods: {
     submit_getProduct() {
-      // Hier können Sie die Logik für die Verarbeitung der Eingabe implementieren
-      // In diesem Beispiel wird die Eingabe einfach als Output angezeigt
-
-      // Die Eingabe wird an die neue Komponente übergeben, wenn der "Absenden"-Button geklickt wird
-      // Das Ergebnis wird über die Methode handle_getProduct_result empfangen
-      
-      //TEST:
-      //this.output_getProduct=this.input_getProduct;
-
       this.$refs.getProduct.callApi(this.input_getProduct);
     }
     ,
@@ -355,43 +346,6 @@
     }
     };
 
-      /*
-
-        components: { BarChart },
-        data () {
-            return {
-               drawer:true,
-               selectOrte: [],
-               itemsOrte: [],
-               selectKategorie: [],
-               itemsKategorie: [],
-            }
-        },
-        methods:{
-          handleKategorie(data){
-                this.itemsKategorie=data
-            },
-          handleOrte(data){
-                this.itemsOrte=data
-            },
-          toggleSelectAll() {
-                if (this.selectAll === true) {
-                  this.selectOrte = []
-                } 
-                else {
-                  this.selectOrte = this.itemsOrte
-                }
-            }, 
-
-        }
-        }
-        */
-
-
-
-
-
-   
 
 </script>
 
@@ -407,13 +361,13 @@
 }
 
 .result-heading {
-  font-size: 20px; /* Passen Sie die Schriftgröße an, falls erforderlich */
+  font-size: 20px; /* Schriftgröße anpassen, falls erforderlich */
   font-weight: bold; /* Fettformatierung für den Text "Ergebnis" */
   margin-bottom: 5px; /* Abstand unterhalb des Textes "Ergebnis" */
 }
 
 .larger-text {
-  font-size: 20px; /* Passen Sie die Schriftgröße nach Bedarf an */
+  font-size: 20px; /* Schriftgröße nach Bedarf anpassen */
 }
 
 .sub-heading {

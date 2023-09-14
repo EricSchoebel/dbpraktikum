@@ -112,13 +112,13 @@
 }
 
 .result-heading {
-  font-size: 20px; /* Passen Sie die Schriftgröße an, falls erforderlich */
+  font-size: 20px; /* Schriftgröße anpassen, falls erforderlich */
   font-weight: bold; /* Fettformatierung für den Text "Ergebnis" */
   margin-bottom: 5px; /* Abstand unterhalb des Textes "Ergebnis" */
 }
 
 .larger-text {
-  font-size: 20px; /* Passen Sie die Schriftgröße nach Bedarf an */
+  font-size: 20px; /* Schriftgröße nach Bedarf anpassen */
 }
 
 .sub-heading {
