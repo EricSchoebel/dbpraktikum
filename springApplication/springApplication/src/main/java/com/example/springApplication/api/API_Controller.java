@@ -47,12 +47,12 @@ public class API_Controller {
 
     @RequestMapping(value = "/get/getProductsByCategoryPath", method = RequestMethod.GET)
     public List<String> getProductsByCategoryPath(@RequestParam(value = "path") String path) {
-        return api_services.getProductsByCategoryPath(path); //jede einzelne ProduktEntity der Liste enthält jeweils pid und titel
+        return api_services.getProductsByCategoryPath(path);
     }
 
     @RequestMapping(value = "/get/getTopProducts", method = RequestMethod.GET)
     public List<String> getTopProducts(@RequestParam(value = "k") int k) {
-        return api_services.getTopProducts(k); //jede einzelne ProduktEntity der Liste enthält jeweils pid, titel und rating
+        return api_services.getTopProducts(k);
     }
 
     @RequestMapping(value = "/get/getSimilarCheaperProduct", method = RequestMethod.GET)
