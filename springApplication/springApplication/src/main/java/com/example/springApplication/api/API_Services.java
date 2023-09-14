@@ -89,7 +89,7 @@ public class API_Services {
         }
 
         String escapedString = StringEscapeUtils.escapeEcmaScript(sb.toString());
-        System.out.println(escapedString);
+        //System.out.println(escapedString);
         return escapedString;
     }
 
@@ -191,7 +191,7 @@ public class API_Services {
         combinedList.addAll(listSimilarB);
         Set<String> uniqueSet = new HashSet<>(combinedList);
         List<String> listSimilar = new ArrayList<>(uniqueSet);
-        listSimilar.add(pid);
+        listSimilar.add(pid); //zu sich selbst ist Produkt immer aehnlich
 
         List<String> listCheaper = angebotRepository.getCheaperProductsForPidHilfs(pid);
 
