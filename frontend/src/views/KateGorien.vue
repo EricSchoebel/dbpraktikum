@@ -22,7 +22,7 @@
           <v-container>
             <v-row>
               <v-col cols="12" md="6">
-                Achtung: es muss mit einer gewichtigen Wartezeit gerechnet werden!
+                Achtung: es muss mit etwas Wartezeit gerechnet werden!
               </v-col>
               <v-col cols="12" md="6">
                 <v-btn @click="submit_getCategoryTree" class="custom-green-button">Abfragen</v-btn>  
