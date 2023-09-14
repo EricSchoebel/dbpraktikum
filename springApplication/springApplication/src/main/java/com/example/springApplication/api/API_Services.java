@@ -87,8 +87,10 @@ public class API_Services {
             sb.append("Laufzeit in Minuten: ").append(dvd.getLaufzeit()).append("<br>");
             sb.append("Regioncode: ").append(dvd.getRegioncode()).append("<br>");
         }
-        System.out.println(sb.toString());
-        return sb.toString();
+
+        String escapedString = StringEscapeUtils.escapeEcmaScript(sb.toString());
+        System.out.println(escapedString);
+        return escapedString;
     }
 
     public List<String> getProductsForPattern(String pattern) {
