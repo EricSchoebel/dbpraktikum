@@ -22,13 +22,10 @@
         methods: {
           async callApi(productId) {
             try {
-                // Führen Sie hier Ihren API-Aufruf durch und speichern Sie das Ergebnis in apiResult
-                // Beispiel:
                 const encodedProductId = encodeURIComponent(productId);
                 const apiUrl = `http://localhost:8080/get/getSimilarCheaperProduct?pid=${encodedProductId}`;
                 const response = await fetch(apiUrl);
     
-                // Überprüfen Sie, ob die Anfrage erfolgreich war (Statuscode 200)
                 if (response.ok) {
                 const data = await response.json();
                 this.apiResult = data; // Das Ergebnis in apiResult speichern
