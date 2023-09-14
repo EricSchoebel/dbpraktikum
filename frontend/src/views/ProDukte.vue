@@ -189,7 +189,7 @@
   
      <div v-if="output_getSimilarCheaperProduct" class="output-box" style="padding-left: 10px; padding-right: 10px;">
         <p class="result-heading">Ergebnis:</p>
-        <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID, Titel 
+        <p class="sub-heading">AUSGABEFORMAT PRO PRODUKT: ProduktID 
         </p> 
         {{ output_getSimilarCheaperProduct }}
       </div>
