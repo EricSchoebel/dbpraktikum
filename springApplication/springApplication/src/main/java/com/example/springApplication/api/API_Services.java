@@ -77,7 +77,7 @@ public class API_Services {
         if(cdRepository.getCd(pid) != null){
             CdEntity cd = cdRepository.getCd(pid);
             sb.insert(0, "Art des Produkts: CD<br>");
-            sb.append("Seitenzahl: ").append(cd.getLabel()).append("<br>");
+            sb.append("Label: ").append(cd.getLabel()).append("<br>");
             sb.append("Erscheinungsdatum: ").append(cd.getErscheinungsdatum()).append("<br>");
         }
         if(dvdRepository.getDvd(pid) != null){
